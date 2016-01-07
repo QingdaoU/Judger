@@ -21,7 +21,9 @@ struct result {
     int cpu_time;
     int memory;
     int real_time;
+    int signal;
     int flag;
+    int err;
 };
 
 
@@ -47,35 +49,25 @@ void set_timer(int sec, int ms, int is_cpu_time) {
 }
 
 
-struct config config;
-
-int main() {
-    // todo
-    int max_cpu_time = 3000;
-    // KB
-    int max_memory = 9000000;
-    //
+void judge(struct config *config, struct result *result) {
 
     int status;
     struct rusage resource_usage;
-    struct result result;
     struct timeval start, end;
-
-    config.max_cpu_time = max_cpu_time;
-    config.max_memory = max_memory;
-    strcpy(config.path, "/Users/virusdefender/Desktop/judger/test");
-    strcpy(config.in_file, "/Users/virusdefender/Desktop/judger/in");
-    strcpy(config.out_file, "/Users/virusdefender/Desktop/judger/out");
 
     gettimeofday(&start, NULL);
 
     pid_t pid = fork();
+
     if (pid < 0) {
 #ifdef DEBUG
         printf("FORK FAILED");
 #endif
-        return FORK_FAILED;
+        result->flag = SYSTEM_ERROR;
+        result->err = FORK_FAILED;
+        return;
     }
+
     if (pid > 0) {
         //parent process
 #ifdef DEBUG
@@ -85,41 +77,41 @@ int main() {
 #ifdef DEBUG
             printf("wait4 FAILED");
 #endif
-            return WAIT4_FAILED;
+            result->flag = SYSTEM_ERROR;
+            result->err = WAIT4_FAILED;
+            return;
         }
-        result.cpu_time = resource_usage.ru_utime.tv_sec * 1000 +
-                          resource_usage.ru_utime.tv_usec / 1000 +
-                          resource_usage.ru_stime.tv_sec * 1000 +
-                          resource_usage.ru_stime.tv_usec / 1000;
-        result.memory = resource_usage.ru_maxrss;
-        result.flag = SUCCESS;
+        result->cpu_time = resource_usage.ru_utime.tv_sec * 1000 +
+                           resource_usage.ru_utime.tv_usec / 1000 +
+                           resource_usage.ru_stime.tv_sec * 1000 +
+                           resource_usage.ru_stime.tv_usec / 1000;
+
+        result->memory = resource_usage.ru_maxrss;
+        result->flag = SUCCESS;
 
         if (WIFSIGNALED(status)) {
-#ifdef DEBUG
-            printf("SIGNAL %d\n", WIFSIGNALED(status));
-#endif
             int signal = WTERMSIG(status);
+#ifdef DEBUG
+            printf("SIGNAL %d\n", signal);
+#endif
+            result->signal = signal;
             if (signal == SIGALRM || signal == SIGVTALRM) {
-                result.flag = TIME_LIMIT_EXCEEDED;
+                result->flag = TIME_LIMIT_EXCEEDED;
             }
             else if (signal == SIGSEGV) {
-                if (result.memory > config.max_memory) {
-                    result.flag = MEMORY_LIMIT_EXCEEDED;
+                if (result->memory > config->max_memory) {
+                    result->flag = MEMORY_LIMIT_EXCEEDED;
                 }
                 else {
-                    result.flag = RUNTIME_ERROR;
+                    result->flag = RUNTIME_ERROR;
                 }
             }
             else {
-                result.flag = RUNTIME_ERROR;
+                result->flag = RUNTIME_ERROR;
             }
         }
         gettimeofday(&end, NULL);
-        result.real_time = end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000;
-#ifdef DEBUG
-        printf("cpu time %d\nreal time %d\nmemory %d\nflag %d", result.cpu_time, result.real_time, result.memory,
-               result.flag);
-#endif
+        result->real_time = end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000;
     }
     else {
         //child process
@@ -127,15 +119,35 @@ int main() {
         printf("%s", "I'm child process\n");
 #endif
         // cpu time
-        set_timer(max_cpu_time / 1000, max_cpu_time % 1000, 1);
+        set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1);
         // real time * 3
-        set_timer(max_cpu_time / 1000 * 3, 0, 0);
+        set_timer(config->max_cpu_time / 1000 * 3, 0, 0);
 
-        dup2(fileno(fopen(config.in_file, "r")), 0);
-        dup2(fileno(fopen(config.out_file, "w")), 1);
-        
-        execve(config.path, NULL, NULL);
+        dup2(fileno(fopen(config->in_file, "r")), 0);
+        dup2(fileno(fopen(config->out_file, "w")), 1);
+
+        execve(config->path, NULL, NULL);
     }
+}
+
+
+int main() {
+    struct config config;
+    struct result result;
+
+    config.max_cpu_time = 3000;
+    config.max_memory = 9000000;
+
+    strcpy(config.path, "/Users/virusdefender/Desktop/judger/test");
+    strcpy(config.in_file, "/Users/virusdefender/Desktop/judger/in");
+    strcpy(config.out_file, "/Users/virusdefender/Desktop/judger/out");
+
+    judge(&config, &result);
+
+#ifdef DEBUG
+    printf("cpu time %d\nreal time %d\nmemory %d\nflag %d\nsignal %d", result.cpu_time, result.real_time, result.memory,
+           result.flag, result.signal);
+#endif
 
     return 0;
 }
