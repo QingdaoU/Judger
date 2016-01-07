@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <sys/time.h>
@@ -65,6 +64,8 @@ int main() {
     config.max_cpu_time = max_cpu_time;
     config.max_memory = max_memory;
     strcpy(config.path, "/Users/virusdefender/Desktop/judger/test");
+    strcpy(config.in_file, "/Users/virusdefender/Desktop/judger/in");
+    strcpy(config.out_file, "/Users/virusdefender/Desktop/judger/out");
 
     gettimeofday(&start, NULL);
 
@@ -94,6 +95,9 @@ int main() {
         result.flag = SUCCESS;
 
         if (WIFSIGNALED(status)) {
+#ifdef DEBUG
+            printf("SIGNAL %d\n", WIFSIGNALED(status));
+#endif
             int signal = WTERMSIG(status);
             if (signal == SIGALRM || signal == SIGVTALRM) {
                 result.flag = TIME_LIMIT_EXCEEDED;
@@ -113,7 +117,8 @@ int main() {
         gettimeofday(&end, NULL);
         result.real_time = end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000;
 #ifdef DEBUG
-        printf("cpu time %d\nreal time %d\nmemory %d\nflag %d", result.cpu_time, result.real_time, result.memory, result.flag);
+        printf("cpu time %d\nreal time %d\nmemory %d\nflag %d", result.cpu_time, result.real_time, result.memory,
+               result.flag);
 #endif
     }
     else {
@@ -125,6 +130,10 @@ int main() {
         set_timer(max_cpu_time / 1000, max_cpu_time % 1000, 1);
         // real time * 3
         set_timer(max_cpu_time / 1000 * 3, 0, 0);
+
+        dup2(fileno(fopen(config.in_file, "r")), 0);
+        dup2(fileno(fopen(config.out_file, "w")), 1);
+        
         execve(config.path, NULL, NULL);
     }
 
