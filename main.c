@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <sys/time.h>
@@ -8,7 +10,6 @@
 
 #define FORK_FAILED -1
 #define WAIT4_FAILED -2
-
 
 #define SUCCESS 0
 #define TIME_LIMIT_EXCEEDED 1
@@ -20,42 +21,52 @@
 struct result {
     int cpu_time;
     int memory;
+    int real_time;
     int flag;
 };
 
 
-struct run {
+struct config {
     int max_cpu_time;
     int max_memory;
+    char path[200];
+    char in_file[200];
+    char out_file[200];
 };
 
 
-static void
-set_timer(unsigned long sec, unsigned long ms, int is_cputime) {
-    struct itimerval tval;
-    tval.it_interval.tv_sec = tval.it_interval.tv_usec = 0;
-    tval.it_value.tv_sec = sec;
-    tval.it_value.tv_usec = ms * 1000;
-    if (setitimer(is_cputime ? ITIMER_VIRTUAL : ITIMER_REAL, &tval, NULL) == -1)
+void set_timer(int sec, int ms, int is_cpu_time) {
+    struct itimerval time_val;
+    time_val.it_interval.tv_sec = time_val.it_interval.tv_usec = 0;
+    time_val.it_value.tv_sec = sec;
+    time_val.it_value.tv_usec = ms * 1000;
+    if (setitimer(is_cpu_time ? ITIMER_VIRTUAL : ITIMER_REAL, &time_val, NULL) == -1) {
 #ifdef DEBUG
         printf("SET TIMER ERROR\n");
 #endif
+    }
 }
 
 
-struct run runner;
+struct config config;
 
 int main() {
-    int time_limit = 1000;
+    // todo
+    int max_cpu_time = 3000;
     // KB
-    int memory_limit = 1000;
+    int max_memory = 9000000;
+    //
 
     int status;
     struct rusage resource_usage;
     struct result result;
+    struct timeval start, end;
 
-    runner.max_cpu_time = 1000;
-    runner.max_memory = 1000;
+    config.max_cpu_time = max_cpu_time;
+    config.max_memory = max_memory;
+    strcpy(config.path, "/Users/virusdefender/Desktop/judger/test");
+
+    gettimeofday(&start, NULL);
 
     pid_t pid = fork();
     if (pid < 0) {
@@ -84,36 +95,37 @@ int main() {
 
         if (WIFSIGNALED(status)) {
             int signal = WTERMSIG(status);
-            if(signal == SIGALRM || signal == SIGVTALRM){
+            if (signal == SIGALRM || signal == SIGVTALRM) {
                 result.flag = TIME_LIMIT_EXCEEDED;
             }
-            else if(signal == SIGSEGV){
-                if (result.memory > runner.max_memory) {
+            else if (signal == SIGSEGV) {
+                if (result.memory > config.max_memory) {
                     result.flag = MEMORY_LIMIT_EXCEEDED;
                 }
                 else {
                     result.flag = RUNTIME_ERROR;
                 }
             }
-            else{
+            else {
                 result.flag = RUNTIME_ERROR;
             }
         }
+        gettimeofday(&end, NULL);
+        result.real_time = end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000;
 #ifdef DEBUG
-        printf("cpu time %d\nmemory %d\nflag %d", result.cpu_time, result.memory, result.flag);
+        printf("cpu time %d\nreal time %d\nmemory %d\nflag %d", result.cpu_time, result.real_time, result.memory, result.flag);
 #endif
-
     }
     else {
         //child process
 #ifdef DEBUG
         printf("%s", "I'm child process\n");
 #endif
-        set_timer(0, 900, 1);
-        int i = 900000000;
-        while (i) {
-            i = i - 1;
-        }
+        // cpu time
+        set_timer(max_cpu_time / 1000, max_cpu_time % 1000, 1);
+        // real time * 3
+        set_timer(max_cpu_time / 1000 * 3, 0, 0);
+        execve(config.path, NULL, NULL);
     }
 
     return 0;
