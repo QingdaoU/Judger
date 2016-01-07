@@ -3,7 +3,9 @@
 
 int main()
 {
-    printf("Hello, I'm test\n");
+    char input[1000];
+    scanf("%s", input);
+    printf("%s", input);
     int i = 900000000;
     while (i) {
         i = i - 1;
