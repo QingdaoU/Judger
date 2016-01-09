@@ -11,10 +11,11 @@
 #define WAIT4_FAILED -2
 
 #define SUCCESS 0
-#define TIME_LIMIT_EXCEEDED 1
-#define MEMORY_LIMIT_EXCEEDED 2
-#define RUNTIME_ERROR 3
-#define SYSTEM_ERROR 4
+#define CPU_TIME_LIMIT_EXCEEDED 1
+#define REAL_TIME_LIMIT_EXCEEDED 2
+#define MEMORY_LIMIT_EXCEEDED 3
+#define RUNTIME_ERROR 4
+#define SYSTEM_ERROR 5
 
 
 struct result {
@@ -95,8 +96,11 @@ void judge(struct config *config, struct result *result) {
             printf("SIGNAL %d\n", signal);
 #endif
             result->signal = signal;
-            if (signal == SIGALRM || signal == SIGVTALRM) {
-                result->flag = TIME_LIMIT_EXCEEDED;
+            if (signal == SIGALRM) {
+                result->flag = REAL_TIME_LIMIT_EXCEEDED;
+            }
+            else if (signal == SIGVTALRM) {
+                result->flag = CPU_TIME_LIMIT_EXCEEDED;
             }
             else if (signal == SIGSEGV) {
                 if (result->memory > config->max_memory) {
@@ -121,10 +125,10 @@ void judge(struct config *config, struct result *result) {
         // cpu time
         set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1);
         // real time * 3
-        set_timer(config->max_cpu_time / 1000 * 3, 0, 0);
+        set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0);
 
-        dup2(fileno(fopen(config->in_file, "r")), 0);
-        dup2(fileno(fopen(config->out_file, "w")), 1);
+        //dup2(fileno(fopen(config->in_file, "r")), 0);
+        //dup2(fileno(fopen(config->out_file, "w")), 1);
 
         execve(config->path, NULL, NULL);
     }
@@ -135,7 +139,7 @@ int main() {
     struct config config;
     struct result result;
 
-    config.max_cpu_time = 3000;
+    config.max_cpu_time = 2300;
     config.max_memory = 9000000;
 
     strcpy(config.path, "/Users/virusdefender/Desktop/judger/test");
