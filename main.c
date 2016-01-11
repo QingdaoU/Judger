@@ -5,7 +5,14 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 
-#define DEBUG true
+
+#define __DEBUG__
+#ifdef __DEBUG__
+#define DEBUG(format, ...) printf("File: "__FILE__", Line: %05d: "format"\n", __LINE__, ##__VA_ARGS__)
+#else
+#define DEBUG(format,...)
+#endif
+
 
 #define RUN_SUCCEEDED 0
 #define FORK_FAILED -1
@@ -45,9 +52,7 @@ void set_timer(int sec, int ms, int is_cpu_time) {
     time_val.it_value.tv_sec = sec;
     time_val.it_value.tv_usec = ms * 1000;
     if (setitimer(is_cpu_time ? ITIMER_VIRTUAL : ITIMER_REAL, &time_val, NULL) == -1) {
-#ifdef DEBUG
-        printf("settimer failed\n");
-#endif
+        DEBUG("settimer failed\n");
     }
 }
 
@@ -67,9 +72,7 @@ int run(struct config *config, struct result *result) {
     pid_t pid = fork();
 
     if (pid < 0) {
-#ifdef DEBUG
-        printf("fork failed\n");
-#endif
+        DEBUG("fork failed\n");
         result->flag = SYSTEM_ERROR;
         result->err = FORK_FAILED;
         return RUN_FAILED;
@@ -77,13 +80,9 @@ int run(struct config *config, struct result *result) {
 
     if (pid > 0) {
         //parent process
-#ifdef DEBUG
-        printf("I'm parent process\n");
-#endif
+        DEBUG("I'm parent process\n");
         if (wait4(pid, &status, 0, &resource_usage) == -1) {
-#ifdef DEBUG
-            printf("wait4 failed\n");
-#endif
+            DEBUG("wait4 failed\n");
             result->flag = SYSTEM_ERROR;
             result->err = WAIT4_FAILED;
             return RUN_FAILED;
@@ -99,9 +98,7 @@ int run(struct config *config, struct result *result) {
 
         if (WIFSIGNALED(status)) {
             signal = WTERMSIG(status);
-#ifdef DEBUG
-            printf("signal %d\n", signal);
-#endif
+            DEBUG("signal %d\n", signal);
             result->signal = signal;
             if (signal == SIGALRM) {
                 result->flag = REAL_TIME_LIMIT_EXCEEDED;
@@ -127,11 +124,9 @@ int run(struct config *config, struct result *result) {
     }
     else {
         //child process
-#ifdef DEBUG
-        printf("I'm child process\n");
-#endif
+        DEBUG("I'm child process\n");
         if (setrlimit(RLIMIT_AS, &memory_limit) != 0)
-            printf("setrlimit failed\n");
+            DEBUG("setrlimit failed\n");
         // cpu time
         set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1);
         // real time * 3
@@ -141,9 +136,7 @@ int run(struct config *config, struct result *result) {
         //dup2(fileno(fopen(config->out_file, "w")), 1);
 
         execve(config->path, argv, NULL);
-#ifdef DEBUG
-        printf("execve failed\n");
-#endif
+        DEBUG("execve failed\n");
         return RUN_FAILED;
     }
 }
@@ -157,24 +150,20 @@ int main() {
     config.max_cpu_time = 4300;
     config.max_memory = 150000000;
 
-    strcpy(config.path, "/home/virusdefender/Desktop/judger/limit");
+    strcpy(config.path, "/Users/virusdefender/Desktop/judger/limit");
     strcpy(config.in_file, "/Users/virusdefender/Desktop/judger/in");
     strcpy(config.out_file, "/Users/virusdefender/Desktop/judger/out");
 
     run_ret = run(&config, &result);
 
     if (run_ret) {
-#ifdef DEBUG
-        printf("run failed\n");
-#endif
+        DEBUG("run failed\n");
         return RUN_FAILED;
     }
 
-#ifdef DEBUG
-    printf("cpu time %d\nreal time %d\nmemory %ld\nflag %d\nsignal %d", result.cpu_time, result.real_time,
-           result.memory,
-           result.flag, result.signal);
-#endif
+    DEBUG("cpu time %d\nreal time %d\nmemory %ld\nflag %d\nsignal %d", result.cpu_time, result.real_time,
+          result.memory,
+          result.flag, result.signal);
 
     return 0;
 }
