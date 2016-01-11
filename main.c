@@ -7,6 +7,8 @@
 
 
 #define __DEBUG__
+
+
 #ifdef __DEBUG__
 #define DEBUG(format, ...) printf("File: "__FILE__", Line: %05d: "format"\n", __LINE__, ##__VA_ARGS__)
 #else
@@ -18,6 +20,7 @@
 #define FORK_FAILED -1
 #define WAIT4_FAILED -2
 #define RUN_FAILED -3
+
 
 #define SUCCESS 0
 #define CPU_TIME_LIMIT_EXCEEDED 1
@@ -94,7 +97,7 @@ int run(struct config *config, struct result *result) {
 
         result->memory = resource_usage.ru_maxrss * 1024;
         result->signal = 0;
-        result->flag = SUCCESS;
+        result->flag = result->err = SUCCESS;
 
         if (WIFSIGNALED(status)) {
             signal = WTERMSIG(status);
@@ -161,9 +164,8 @@ int main() {
         return RUN_FAILED;
     }
 
-    DEBUG("cpu time %d\nreal time %d\nmemory %ld\nflag %d\nsignal %d", result.cpu_time, result.real_time,
-          result.memory,
-          result.flag, result.signal);
+    DEBUG("cpu time %d\nreal time %d\nmemory %ld\nflag %d\nsignal %d\nerr %d",
+          result.cpu_time, result.real_time, result.memory, result.flag, result.signal, result.err);
 
     return 0;
 }
