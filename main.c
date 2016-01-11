@@ -5,10 +5,12 @@
 #include <sys/wait.h>
 #include <sys/time.h>
 
-#define DEBUG 1
+#define DEBUG true
 
+#define RUN_SUCCEEDED 0
 #define FORK_FAILED -1
 #define WAIT4_FAILED -2
+#define RUN_FAILED -3
 
 #define SUCCESS 0
 #define CPU_TIME_LIMIT_EXCEEDED 1
@@ -50,13 +52,17 @@ void set_timer(int sec, int ms, int is_cpu_time) {
 }
 
 
-void run(struct config *config, struct result *result) {
+int run(struct config *config, struct result *result) {
     int status;
     struct rusage resource_usage;
     struct timeval start, end;
-    struct rlimit resource_limit;
+    struct rlimit memory_limit;
+    int signal;
+    char *argv[] = {config->path, NULL};
 
     gettimeofday(&start, NULL);
+
+    memory_limit.rlim_cur = memory_limit.rlim_max = (rlim_t) (config->max_memory);
 
     pid_t pid = fork();
 
@@ -66,7 +72,7 @@ void run(struct config *config, struct result *result) {
 #endif
         result->flag = SYSTEM_ERROR;
         result->err = FORK_FAILED;
-        return;
+        return RUN_FAILED;
     }
 
     if (pid > 0) {
@@ -80,18 +86,19 @@ void run(struct config *config, struct result *result) {
 #endif
             result->flag = SYSTEM_ERROR;
             result->err = WAIT4_FAILED;
-            return;
+            return RUN_FAILED;
         }
-        result->cpu_time = (int)(resource_usage.ru_utime.tv_sec * 1000 +
-                           resource_usage.ru_utime.tv_usec / 1000 +
-                           resource_usage.ru_stime.tv_sec * 1000 +
-                           resource_usage.ru_stime.tv_usec / 1000);
+        result->cpu_time = (int) (resource_usage.ru_utime.tv_sec * 1000 +
+                                  resource_usage.ru_utime.tv_usec / 1000 +
+                                  resource_usage.ru_stime.tv_sec * 1000 +
+                                  resource_usage.ru_stime.tv_usec / 1000);
 
-        result->memory = resource_usage.ru_maxrss;
+        result->memory = resource_usage.ru_maxrss * 1024;
+        result->signal = 0;
         result->flag = SUCCESS;
 
         if (WIFSIGNALED(status)) {
-            int signal = WTERMSIG(status);
+            signal = WTERMSIG(status);
 #ifdef DEBUG
             printf("signal %d\n", signal);
 #endif
@@ -115,16 +122,16 @@ void run(struct config *config, struct result *result) {
             }
         }
         gettimeofday(&end, NULL);
-        result->real_time = (int)(end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
+        result->real_time = (int) (end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
+        return RUN_SUCCEEDED;
     }
     else {
         //child process
 #ifdef DEBUG
         printf("I'm child process\n");
 #endif
-        resource_limit.rlim_cur = (int)(resource_limit.rlim_max = config->max_memory);
-        if(setrlimit(RLIMIT_DATA, &resource_limit) != 0)
-            printf("setrlimit failed");
+        if (setrlimit(RLIMIT_AS, &memory_limit) != 0)
+            printf("setrlimit failed\n");
         // cpu time
         set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1);
         // real time * 3
@@ -133,10 +140,11 @@ void run(struct config *config, struct result *result) {
         //dup2(fileno(fopen(config->in_file, "r")), 0);
         //dup2(fileno(fopen(config->out_file, "w")), 1);
 
-        execve(config->path, NULL, NULL);
+        execve(config->path, argv, NULL);
 #ifdef DEBUG
-        printf("execve failed");
+        printf("execve failed\n");
 #endif
+        return RUN_FAILED;
     }
 }
 
@@ -144,18 +152,27 @@ void run(struct config *config, struct result *result) {
 int main() {
     struct config config;
     struct result result;
+    int run_ret;
 
     config.max_cpu_time = 4300;
-    config.max_memory = 300;
+    config.max_memory = 150000000;
 
     strcpy(config.path, "/home/virusdefender/Desktop/judger/limit");
     strcpy(config.in_file, "/Users/virusdefender/Desktop/judger/in");
     strcpy(config.out_file, "/Users/virusdefender/Desktop/judger/out");
 
-    run(&config, &result);
+    run_ret = run(&config, &result);
+
+    if (run_ret) {
+#ifdef DEBUG
+        printf("run failed\n");
+#endif
+        return RUN_FAILED;
+    }
 
 #ifdef DEBUG
-    printf("cpu time %d\nreal time %d\nmemory %ld\nflag %d\nsignal %d", result.cpu_time, result.real_time, result.memory,
+    printf("cpu time %d\nreal time %d\nmemory %ld\nflag %d\nsignal %d", result.cpu_time, result.real_time,
+           result.memory,
            result.flag, result.signal);
 #endif
 
