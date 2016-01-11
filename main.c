@@ -20,7 +20,7 @@
 
 struct result {
     int cpu_time;
-    int memory;
+    long memory;
     int real_time;
     int signal;
     int flag;
@@ -44,17 +44,17 @@ void set_timer(int sec, int ms, int is_cpu_time) {
     time_val.it_value.tv_usec = ms * 1000;
     if (setitimer(is_cpu_time ? ITIMER_VIRTUAL : ITIMER_REAL, &time_val, NULL) == -1) {
 #ifdef DEBUG
-        printf("SET TIMER ERROR\n");
+        printf("settimer failed\n");
 #endif
     }
 }
 
 
-void judge(struct config *config, struct result *result) {
-
+void run(struct config *config, struct result *result) {
     int status;
     struct rusage resource_usage;
     struct timeval start, end;
+    struct rlimit resource_limit;
 
     gettimeofday(&start, NULL);
 
@@ -62,7 +62,7 @@ void judge(struct config *config, struct result *result) {
 
     if (pid < 0) {
 #ifdef DEBUG
-        printf("FORK FAILED");
+        printf("fork failed\n");
 #endif
         result->flag = SYSTEM_ERROR;
         result->err = FORK_FAILED;
@@ -72,20 +72,20 @@ void judge(struct config *config, struct result *result) {
     if (pid > 0) {
         //parent process
 #ifdef DEBUG
-        printf("%s", "I'm parent process\n");
+        printf("I'm parent process\n");
 #endif
         if (wait4(pid, &status, 0, &resource_usage) == -1) {
 #ifdef DEBUG
-            printf("wait4 FAILED");
+            printf("wait4 failed\n");
 #endif
             result->flag = SYSTEM_ERROR;
             result->err = WAIT4_FAILED;
             return;
         }
-        result->cpu_time = resource_usage.ru_utime.tv_sec * 1000 +
+        result->cpu_time = (int)(resource_usage.ru_utime.tv_sec * 1000 +
                            resource_usage.ru_utime.tv_usec / 1000 +
                            resource_usage.ru_stime.tv_sec * 1000 +
-                           resource_usage.ru_stime.tv_usec / 1000;
+                           resource_usage.ru_stime.tv_usec / 1000);
 
         result->memory = resource_usage.ru_maxrss;
         result->flag = SUCCESS;
@@ -93,7 +93,7 @@ void judge(struct config *config, struct result *result) {
         if (WIFSIGNALED(status)) {
             int signal = WTERMSIG(status);
 #ifdef DEBUG
-            printf("SIGNAL %d\n", signal);
+            printf("signal %d\n", signal);
 #endif
             result->signal = signal;
             if (signal == SIGALRM) {
@@ -115,13 +115,16 @@ void judge(struct config *config, struct result *result) {
             }
         }
         gettimeofday(&end, NULL);
-        result->real_time = end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000;
+        result->real_time = (int)(end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
     }
     else {
         //child process
 #ifdef DEBUG
-        printf("%s", "I'm child process\n");
+        printf("I'm child process\n");
 #endif
+        resource_limit.rlim_cur = (int)(resource_limit.rlim_max = config->max_memory);
+        if(setrlimit(RLIMIT_DATA, &resource_limit) != 0)
+            printf("setrlimit failed");
         // cpu time
         set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1);
         // real time * 3
@@ -131,6 +134,9 @@ void judge(struct config *config, struct result *result) {
         //dup2(fileno(fopen(config->out_file, "w")), 1);
 
         execve(config->path, NULL, NULL);
+#ifdef DEBUG
+        printf("execve failed");
+#endif
     }
 }
 
@@ -139,17 +145,17 @@ int main() {
     struct config config;
     struct result result;
 
-    config.max_cpu_time = 2300;
-    config.max_memory = 9000000;
+    config.max_cpu_time = 4300;
+    config.max_memory = 300;
 
-    strcpy(config.path, "/Users/virusdefender/Desktop/judger/test");
+    strcpy(config.path, "/home/virusdefender/Desktop/judger/limit");
     strcpy(config.in_file, "/Users/virusdefender/Desktop/judger/in");
     strcpy(config.out_file, "/Users/virusdefender/Desktop/judger/out");
 
-    judge(&config, &result);
+    run(&config, &result);
 
 #ifdef DEBUG
-    printf("cpu time %d\nreal time %d\nmemory %d\nflag %d\nsignal %d", result.cpu_time, result.real_time, result.memory,
+    printf("cpu time %d\nreal time %d\nmemory %ld\nflag %d\nsignal %d", result.cpu_time, result.real_time, result.memory,
            result.flag, result.signal);
 #endif
 
