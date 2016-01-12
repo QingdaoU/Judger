@@ -1,1 +1,8 @@
 .idea/
+build/
+a.out
+limit
+in
+out
+runner
+CMakeLists.txt
