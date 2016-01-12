@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <sys/time.h>
@@ -39,7 +40,7 @@ int run(struct config *config, struct result *result) {
     if (pid < 0) {
         print("fork failed\n");
         result->flag = SYSTEM_ERROR;
-        result->err = FORK_FAILED;
+        result->error = FORK_FAILED;
         return RUN_FAILED;
     }
 
@@ -49,7 +50,7 @@ int run(struct config *config, struct result *result) {
         if (wait4(pid, &status, 0, &resource_usage) == -1) {
             print("wait4 failed\n");
             result->flag = SYSTEM_ERROR;
-            result->err = WAIT4_FAILED;
+            result->error = WAIT4_FAILED;
             return RUN_FAILED;
         }
         result->cpu_time = (int) (resource_usage.ru_utime.tv_sec * 1000 +
@@ -68,7 +69,7 @@ int run(struct config *config, struct result *result) {
         result->memory = result->memory * 1024;
 #endif
         result->signal = 0;
-        result->flag = result->err = SUCCESS;
+        result->flag = result->error = SUCCESS;
 
         if (WIFSIGNALED(status)) {
             signal = WTERMSIG(status);
@@ -129,6 +130,10 @@ int main() {
     config.max_cpu_time = 4300;
     config.max_memory = 180000000;
 
+    config.path = (char *)malloc(200);
+    config.in_file = (char *)malloc(200);
+    config.out_file = (char *)malloc(200);
+
     strcpy(config.path, "/Users/virusdefender/Desktop/judger/limit");
     strcpy(config.in_file, "/Users/virusdefender/Desktop/judger/in");
     strcpy(config.out_file, "/Users/virusdefender/Desktop/judger/out");
@@ -140,8 +145,8 @@ int main() {
         return RUN_FAILED;
     }
 
-    print("cpu time %d\nreal time %d\nmemory %ld\nflag %d\nsignal %d\nerr %d",
-          result.cpu_time, result.real_time, result.memory, result.flag, result.signal, result.err);
+    print("cpu time %d\nreal time %d\nmemory %ld\nflag %d\nsignal %d\nerr %d\n",
+          result.cpu_time, result.real_time, result.memory, result.flag, result.signal, result.error);
 
     return 0;
 }

@@ -33,16 +33,16 @@ struct result {
     int real_time;
     int signal;
     int flag;
-    int err;
+    int error;
 };
 
 
 struct config {
     int max_cpu_time;
     int max_memory;
-    char path[200];
-    char in_file[200];
-    char out_file[200];
+    char *path;
+    char *in_file;
+    char *out_file;
 };
 
 
