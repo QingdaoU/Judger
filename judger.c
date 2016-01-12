@@ -7,7 +7,7 @@ static PyObject *error;
 
 static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     struct config config;
-    struct result result;
+    struct result result = {0, 0, 0, 0, 0};
     config.path = config.in_file = config.out_file = NULL;
     static char *kwargs_list[] = {"path", "in_file", "out_file", "max_cpu_time", "max_memory", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sssii", kwargs_list, &(config.path), &(config.in_file),
@@ -32,7 +32,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
 
-    printf("%s %s %s %d %d", config.path, config.in_file, config.out_file, config.max_cpu_time, config.max_memory);
+    // printf("%s %s %s %d %d", config.path, config.in_file, config.out_file, config.max_cpu_time, config.max_memory);
     run(&config, &result);
     return Py_BuildValue("{s: i, s:l, s:i, s:i, s:i, s:i}",
                          "cpu_time", result.cpu_time, "memory", result.memory, "real_time", result.real_time, "signal",

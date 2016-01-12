@@ -2,8 +2,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/resource.h>
-#include <sys/wait.h>
 #include <sys/time.h>
 #include "runner.h"
 
@@ -93,7 +91,7 @@ int run(struct config *config, struct result *result) {
                 result->flag = RUNTIME_ERROR;
             }
         }
-        else{
+        else {
             if (result->memory > config->max_memory) {
                 result->flag = MEMORY_LIMIT_EXCEEDED;
             }
@@ -130,9 +128,9 @@ int main() {
     config.max_cpu_time = 4300;
     config.max_memory = 180000000;
 
-    config.path = (char *)malloc(200);
-    config.in_file = (char *)malloc(200);
-    config.out_file = (char *)malloc(200);
+    config.path = (char *) malloc(200);
+    config.in_file = (char *) malloc(200);
+    config.out_file = (char *) malloc(200);
 
     strcpy(config.path, "/Users/virusdefender/Desktop/judger/limit");
     strcpy(config.in_file, "/Users/virusdefender/Desktop/judger/in");
