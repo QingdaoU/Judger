@@ -7,30 +7,6 @@
 #include "runner.h"
 
 
-#define __DEBUG__
-
-
-#ifdef __DEBUG__
-#define print(format, ...) printf("File: "__FILE__", Line: %05d: "format"\n", __LINE__, ##__VA_ARGS__)
-#else
-#define print(format,...)
-#endif
-
-
-#define RUN_SUCCEEDED 0
-#define FORK_FAILED -1
-#define WAIT4_FAILED -2
-#define RUN_FAILED -3
-
-
-#define SUCCESS 0
-#define CPU_TIME_LIMIT_EXCEEDED 1
-#define REAL_TIME_LIMIT_EXCEEDED 2
-#define MEMORY_LIMIT_EXCEEDED 3
-#define RUNTIME_ERROR 4
-#define SYSTEM_ERROR 5
-
-
 void set_timer(int sec, int ms, int is_cpu_time) {
     struct itimerval time_val;
     time_val.it_interval.tv_sec = time_val.it_interval.tv_usec = 0;
@@ -50,9 +26,13 @@ int run(struct config *config, struct result *result) {
     int signal;
     char *argv[] = {config->path, NULL};
 
+#ifdef __APPLE__
+    print("Warning: setrlimit will not work on OSX");
+#endif
+
     gettimeofday(&start, NULL);
 
-    memory_limit.rlim_cur = memory_limit.rlim_max = (rlim_t) (config->max_memory);
+    memory_limit.rlim_cur = memory_limit.rlim_max = (rlim_t) (config->max_memory) * 2;
 
     pid_t pid = fork();
 
@@ -78,12 +58,21 @@ int run(struct config *config, struct result *result) {
                                   resource_usage.ru_stime.tv_usec / 1000);
 
         result->memory = resource_usage.ru_maxrss;
+
+        // osx: ru_maxrss the maximum resident set size utilized (in bytes).
+        // linux: ru_maxrss (since Linux 2.6.32)This  is  the  maximum  resident set size used (in kilobytes).
+        // For RUSAGE_CHILDREN, this is the resident set size of the largest child,
+        // not the maximum resident set size of the processtree.
+
+#ifdef __linux__
+        result->memory = result->memory * 1024;
+#endif
         result->signal = 0;
         result->flag = result->err = SUCCESS;
 
         if (WIFSIGNALED(status)) {
             signal = WTERMSIG(status);
-            print("signal %d\n", signal);
+            print("Signal %d\n", signal);
             result->signal = signal;
             if (signal == SIGALRM) {
                 result->flag = REAL_TIME_LIMIT_EXCEEDED;
@@ -101,6 +90,11 @@ int run(struct config *config, struct result *result) {
             }
             else {
                 result->flag = RUNTIME_ERROR;
+            }
+        }
+        else{
+            if (result->memory > config->max_memory) {
+                result->flag = MEMORY_LIMIT_EXCEEDED;
             }
         }
         gettimeofday(&end, NULL);
@@ -127,7 +121,6 @@ int run(struct config *config, struct result *result) {
 }
 
 
-
 int main() {
     struct config config;
     struct result result;
@@ -143,7 +136,7 @@ int main() {
     run_ret = run(&config, &result);
 
     if (run_ret) {
-        print("run failed\n");
+        print("Run failed\n");
         return RUN_FAILED;
     }
 
