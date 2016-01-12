@@ -23,7 +23,7 @@ int run(struct config *config, struct result *result) {
     struct timeval start, end;
     struct rlimit memory_limit;
     int signal;
-    char *argv[] = {config->path, NULL};
+    // char *argv[] = {config->path, NULL};
 
 #ifdef __APPLE__
     print("Warning: setrlimit will not work on OSX");
@@ -113,7 +113,7 @@ int run(struct config *config, struct result *result) {
         dup2(fileno(fopen(config->in_file, "r")), 0);
         dup2(fileno(fopen(config->out_file, "w")), 1);
 
-        execve(config->path, argv, NULL);
+        execve(config->path, config->args, config->env);
         print("execve failed\n");
         return RUN_FAILED;
     }

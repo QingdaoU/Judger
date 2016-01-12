@@ -43,6 +43,8 @@ struct config {
     char *path;
     char *in_file;
     char *out_file;
+    char *args[100];
+    char *env[100];
 };
 
 
