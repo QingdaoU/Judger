@@ -112,8 +112,8 @@ int run(struct config *config, struct result *result) {
         // real time * 3
         set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0);
 
-        //dup2(fileno(fopen(config->in_file, "r")), 0);
-        //dup2(fileno(fopen(config->out_file, "w")), 1);
+        dup2(fileno(fopen(config->in_file, "r")), 0);
+        dup2(fileno(fopen(config->out_file, "w")), 1);
 
         execve(config->path, argv, NULL);
         print("execve failed\n");
