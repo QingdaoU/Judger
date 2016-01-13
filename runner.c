@@ -3,6 +3,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <sys/resource.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+
 #include "runner.h"
 
 
@@ -117,34 +121,4 @@ int run(struct config *config, struct result *result) {
         print("execve failed\n");
         return RUN_FAILED;
     }
-}
-
-
-int main() {
-    struct config config;
-    struct result result;
-    int run_ret;
-
-    config.max_cpu_time = 4300;
-    config.max_memory = 180000000;
-
-    config.path = (char *) malloc(200);
-    config.in_file = (char *) malloc(200);
-    config.out_file = (char *) malloc(200);
-
-    strcpy(config.path, "/Users/virusdefender/Desktop/judger/limit");
-    strcpy(config.in_file, "/Users/virusdefender/Desktop/judger/in");
-    strcpy(config.out_file, "/Users/virusdefender/Desktop/judger/out");
-
-    run_ret = run(&config, &result);
-
-    if (run_ret) {
-        print("Run failed\n");
-        return RUN_FAILED;
-    }
-
-    print("cpu time %d\nreal time %d\nmemory %ld\nflag %d\nsignal %d\nerr %d\n",
-          result.cpu_time, result.real_time, result.memory, result.flag, result.signal, result.error);
-
-    return 0;
 }
