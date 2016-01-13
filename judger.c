@@ -75,7 +75,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
 
     // printf("%s %s %s %d %d", config.path, config.in_file, config.out_file, config.max_cpu_time, config.max_memory);
     run(&config, &result);
-    return Py_BuildValue("{s: i, s:l, s:i, s:i, s:i, s:i}",
+    return Py_BuildValue("{s:i, s:l, s:i, s:i, s:i, s:i}",
                          "cpu_time", result.cpu_time, "memory", result.memory, "real_time", result.real_time, "signal",
                          result.signal, "flag", result.flag, "error", result.error);
 
@@ -88,7 +88,7 @@ static PyMethodDef judger_methods[] = {
 };
 
 
-PyMODINIT_FUNC initjudger() {
+PyMODINIT_FUNC initjudger(void) {
     PyObject *module = Py_InitModule3("judger", judger_methods, NULL);
     error = PyErr_NewException("judger.error", NULL, NULL);
     Py_INCREF(error);
