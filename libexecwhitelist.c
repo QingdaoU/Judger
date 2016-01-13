@@ -29,7 +29,9 @@
 #include <unistd.h> // readlink
 #include <seccomp.h>
 #include <stdio.h>
-
+int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(write), SCMP_SYS(open), SCMP_SYS(close), 
+                            SCMP_SYS(fstat), SCMP_SYS(mmap), SCMP_SYS(mprotect), SCMP_SYS(munmap), 
+                            SCMP_SYS(brk), SCMP_SYS(access), SCMP_SYS(exit_group), SCMP_SYS(arch_prctl)};
 typedef int (*main_t)(int, char **, char **);
 
 #ifndef __unbounded
@@ -48,6 +50,7 @@ int __libc_start_main(main_t main, int argc,
     int i;
     ssize_t len;
     void *libc;
+    int whitelist_length = sizeof(syscalls_whitelist) / sizeof(int);
     scmp_filter_ctx ctx = NULL;
     int (*libc_start_main)(main_t main,
         int,
@@ -65,9 +68,10 @@ int __libc_start_main(main_t main, int argc,
     libc_start_main = dlsym(libc, "__libc_start_main");
     if (!libc_start_main) exit(-2);
     
-    ctx = seccomp_init(SCMP_ACT_ALLOW);
+    ctx = seccomp_init(SCMP_ACT_KILL);
     if (!ctx) goto out;
-    if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(clone), 0)) goto out;
+    for(i = 0; i < whitelist_length; i++)
+        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscalls_whitelist[i], 0)) goto out;
     if (seccomp_load(ctx)) goto out;
 out:
     if (ctx) seccomp_release(ctx);
