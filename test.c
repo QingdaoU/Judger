@@ -21,5 +21,5 @@ int main(int argc, char *argv[]) {
         printf("success\n");
     }
     printf("end\n");
-    return 15;
+    return 0;
 }
