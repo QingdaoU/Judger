@@ -117,7 +117,7 @@ int run(struct config *config, struct result *result) {
         return SUCCESS;
     }
     else {
-        //child process
+        // child process
         print("I'm child process\n");
         // On success, these system calls return 0.
         // On error, -1 is returned, and errno is set appropriately.
@@ -137,12 +137,14 @@ int run(struct config *config, struct result *result) {
         }
 
         // read stdin from in file
-        if (dup2(fileno(fopen(config->in_file, "r")), 0)) {
+        // On success, these system calls return the new descriptor. 
+        // On error, -1 is returned, and errno is set appropriately.
+        if (dup2(fileno(fopen(config->in_file, "r")), 0) == -1) {
             print("dup2 stdin failed");
             return DUP2_FAILED;
         }
         // write stdout to out file
-        if (dup2(fileno(fopen(config->out_file, "w")), 1)) {
+        if (dup2(fileno(fopen(config->out_file, "w")), 1) == -1) {
             print("dup2 stdout failed");
             return DUP2_FAILED;
         }
