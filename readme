@@ -1,0 +1,4 @@
+make
+sudo python setup.py install
+touch in out
+python demo.py
