@@ -10,14 +10,16 @@
 #include "runner.h"
 
 
-void set_timer(int sec, int ms, int is_cpu_time) {
+int set_timer(int sec, int ms, int is_cpu_time) {
     struct itimerval time_val;
     time_val.it_interval.tv_sec = time_val.it_interval.tv_usec = 0;
     time_val.it_value.tv_sec = sec;
     time_val.it_value.tv_usec = ms * 1000;
     if (setitimer(is_cpu_time ? ITIMER_VIRTUAL : ITIMER_REAL, &time_val, NULL) == -1) {
-        print("settimer failed\n");
+        print("setitimer failed");
+        return SETITIMER_FAILED;
     }
+    return SUCCESS;
 }
 
 
@@ -27,7 +29,7 @@ int run(struct config *config, struct result *result) {
     struct timeval start, end;
     struct rlimit memory_limit;
     int signal;
-    // char *argv[] = {config->path, NULL};
+    int return_code;
 
 #ifdef __APPLE__
     print("Warning: setrlimit will not work on OSX");
@@ -40,17 +42,19 @@ int run(struct config *config, struct result *result) {
     pid_t pid = fork();
 
     if (pid < 0) {
-        print("fork failed\n");
+        print("fork failed");
         result->flag = SYSTEM_ERROR;
         result->error = FORK_FAILED;
         return RUN_FAILED;
     }
 
-    if (pid > 0) {
-        //parent process
-        print("I'm parent process\n");
+    if (pid) {
+        // parent process
+
+        // on success, returns the process ID of the child whose state has changed;
+        // On error, -1 is returned.
         if (wait4(pid, &status, 0, &resource_usage) == -1) {
-            print("wait4 failed\n");
+            print("wait4 failed");
             result->flag = SYSTEM_ERROR;
             result->error = WAIT4_FAILED;
             return RUN_FAILED;
@@ -72,6 +76,14 @@ int run(struct config *config, struct result *result) {
 #endif
         result->signal = 0;
         result->flag = result->error = SUCCESS;
+
+        return_code = WEXITSTATUS(status);
+        if (return_code) {
+            print("Error child return code, return code: %d", return_code);
+            result->flag = RUNTIME_ERROR;
+            result->error = return_code;
+            return RUN_FAILED;
+        }
 
         if (WIFSIGNALED(status)) {
             signal = WTERMSIG(status);
@@ -102,23 +114,41 @@ int run(struct config *config, struct result *result) {
         }
         gettimeofday(&end, NULL);
         result->real_time = (int) (end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
-        return RUN_SUCCEEDED;
+        return SUCCESS;
     }
     else {
         //child process
         print("I'm child process\n");
-        if (setrlimit(RLIMIT_AS, &memory_limit) != 0)
+        // On success, these system calls return 0.
+        // On error, -1 is returned, and errno is set appropriately.
+        if (setrlimit(RLIMIT_AS, &memory_limit)) {
             print("setrlimit failed\n");
+            return SETRLIMIT_FAILED;
+        }
         // cpu time
-        set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1);
+        if (set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1)) {
+            print("Set cpu time timer failed");
+            return SETITIMER_FAILED;
+        }
         // real time * 3
-        set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0);
+        if (set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0)) {
+            print("Set real time timer failed");
+            return SETITIMER_FAILED;
+        }
 
-        dup2(fileno(fopen(config->in_file, "r")), 0);
-        dup2(fileno(fopen(config->out_file, "w")), 1);
+        // read stdin from in file
+        if (dup2(fileno(fopen(config->in_file, "r")), 0)) {
+            print("dup2 stdin failed");
+            return DUP2_FAILED;
+        }
+        // write stdout to out file
+        if (dup2(fileno(fopen(config->out_file, "w")), 1)) {
+            print("dup2 stdout failed");
+            return DUP2_FAILED;
+        }
 
         execve(config->path, config->args, config->env);
-        print("execve failed\n");
-        return RUN_FAILED;
+        print("execve failed");
+        return EXCEVE_FAILED;
     }
 }

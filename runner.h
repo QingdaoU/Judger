@@ -12,14 +12,16 @@
 #define print(format,...)
 #endif
 
+#define SUCCESS 0
 
-#define RUN_SUCCEEDED 0
 #define FORK_FAILED -1
 #define WAIT4_FAILED -2
 #define RUN_FAILED -3
+#define SETITIMER_FAILED -4
+#define SETRLIMIT_FAILED -5
+#define DUP2_FAILED -6
+#define EXCEVE_FAILED -7
 
-
-#define SUCCESS 0
 #define CPU_TIME_LIMIT_EXCEEDED 1
 #define REAL_TIME_LIMIT_EXCEEDED 2
 #define MEMORY_LIMIT_EXCEEDED 3
