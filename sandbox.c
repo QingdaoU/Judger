@@ -29,9 +29,9 @@
 #include <unistd.h> // readlink
 #include <seccomp.h>
 #include <stdio.h>
-int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(write), SCMP_SYS(open), SCMP_SYS(close), 
-                            SCMP_SYS(fstat), SCMP_SYS(mmap), SCMP_SYS(mprotect), SCMP_SYS(munmap), 
-                            SCMP_SYS(brk), SCMP_SYS(access), SCMP_SYS(exit_group), SCMP_SYS(arch_prctl)};
+int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(write), SCMP_SYS(fstat), 
+                            SCMP_SYS(mmap), SCMP_SYS(mprotect), SCMP_SYS(munmap), 
+                            SCMP_SYS(brk), SCMP_SYS(access), SCMP_SYS(exit_group)};
 typedef int (*main_t)(int, char **, char **);
 
 #ifndef __unbounded
