@@ -1,4 +1,5 @@
 make
 sudo python setup.py install
 touch in out
+gcc test.c -o test
 python demo.py
