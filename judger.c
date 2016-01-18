@@ -90,7 +90,7 @@ static PyMethodDef judger_methods[] = {
 
 PyMODINIT_FUNC initjudger(void) {
     PyObject *module = Py_InitModule3("judger", judger_methods, NULL);
-    error = PyErr_NewException("judger.error", NULL, NULL);
+    error = PyErr_NewException("JudgerError", NULL, NULL);
     Py_INCREF(error);
     PyModule_AddObject(module, "error", error);
 }
