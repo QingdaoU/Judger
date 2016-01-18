@@ -63,18 +63,28 @@ int __libc_start_main(main_t main, int argc,
 
     // Get __libc_start_main entry point
     libc = dlopen("libc.so.6", RTLD_LOCAL  | RTLD_LAZY);
-    if (!libc) exit(-1);
+    if (!libc) {
+        exit(1);
+    }
 
     libc_start_main = dlsym(libc, "__libc_start_main");
-    if (!libc_start_main) exit(-2);
+    if (!libc_start_main) {
+        exit(2);
+    }
     
     ctx = seccomp_init(SCMP_ACT_KILL);
-    if (!ctx) goto out;
-    for(i = 0; i < whitelist_length; i++)
-        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscalls_whitelist[i], 0)) goto out;
-    if (seccomp_load(ctx)) goto out;
-out:
-    if (ctx) seccomp_release(ctx);
+    if (!ctx) {
+        exit(3);
+    }
+    for(i = 0; i < whitelist_length; i++) {
+        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscalls_whitelist[i], 0)) {
+            exit(4);
+        }
+    }
+    if (seccomp_load(ctx)) {
+        exit(5);
+    }
+    seccomp_release(ctx);
     return ((*libc_start_main)(main, argc, ubp_av, auxvec,
                  init, fini, rtld_fini, stack_end));
 }
