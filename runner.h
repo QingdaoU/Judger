@@ -7,9 +7,9 @@
 
 
 #ifdef __DEBUG__
-#define print(format, ...) printf("File: "__FILE__", Line: %05d: "format"\n", __LINE__, ##__VA_ARGS__)
+#define log(format, ...) printf("File: "__FILE__", Line: %05d: "format"\n", __LINE__, ##__VA_ARGS__)
 #else
-#define print(format,...)
+#define log(format,...)
 #endif
 
 #define SUCCESS 0

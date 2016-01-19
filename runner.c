@@ -16,7 +16,7 @@ int set_timer(int sec, int ms, int is_cpu_time) {
     time_val.it_value.tv_sec = sec;
     time_val.it_value.tv_usec = ms * 1000;
     if (setitimer(is_cpu_time ? ITIMER_VIRTUAL : ITIMER_REAL, &time_val, NULL) == -1) {
-        print("setitimer failed");
+        log("setitimer failed");
         return SETITIMER_FAILED;
     }
     return SUCCESS;
@@ -32,7 +32,7 @@ int run(struct config *config, struct result *result) {
     int return_code;
 
 #ifdef __APPLE__
-    print("Warning: setrlimit will not work on OSX");
+    log("Warning: setrlimit with RLIMIT_AS to limit memory usage will not work on OSX");
 #endif
 
     gettimeofday(&start, NULL);
@@ -42,7 +42,7 @@ int run(struct config *config, struct result *result) {
     pid_t pid = fork();
 
     if (pid < 0) {
-        print("fork failed");
+        log("fork failed");
         result->flag = SYSTEM_ERROR;
         result->error = FORK_FAILED;
         return RUN_FAILED;
@@ -54,7 +54,7 @@ int run(struct config *config, struct result *result) {
         // on success, returns the process ID of the child whose state has changed;
         // On error, -1 is returned.
         if (wait4(pid, &status, 0, &resource_usage) == -1) {
-            print("wait4 failed");
+            log("wait4 failed");
             result->flag = SYSTEM_ERROR;
             result->error = WAIT4_FAILED;
             return RUN_FAILED;
@@ -79,7 +79,7 @@ int run(struct config *config, struct result *result) {
 
         return_code = WEXITSTATUS(status);
         if (return_code) {
-            print("Error child return code, return code: %d", return_code);
+            log("Error child return code, return code: %d", return_code);
             result->flag = RUNTIME_ERROR;
             result->error = return_code;
             return RUN_FAILED;
@@ -87,7 +87,7 @@ int run(struct config *config, struct result *result) {
 
         if (WIFSIGNALED(status)) {
             signal = WTERMSIG(status);
-            print("Signal %d\n", signal);
+            log("Signal %d\n", signal);
             result->signal = signal;
             if (signal == SIGALRM) {
                 result->flag = REAL_TIME_LIMIT_EXCEEDED;
@@ -118,21 +118,21 @@ int run(struct config *config, struct result *result) {
     }
     else {
         // child process
-        print("I'm child process\n");
+        log("I'm child process\n");
         // On success, these system calls return 0.
         // On error, -1 is returned, and errno is set appropriately.
         if (setrlimit(RLIMIT_AS, &memory_limit)) {
-            print("setrlimit failed\n");
+            log("setrlimit failed\n");
             return SETRLIMIT_FAILED;
         }
         // cpu time
         if (set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1)) {
-            print("Set cpu time timer failed");
+            log("Set cpu time timer failed");
             return SETITIMER_FAILED;
         }
         // real time * 3
         if (set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0)) {
-            print("Set real time timer failed");
+            log("Set real time timer failed");
             return SETITIMER_FAILED;
         }
 
@@ -140,17 +140,17 @@ int run(struct config *config, struct result *result) {
         // On success, these system calls return the new descriptor. 
         // On error, -1 is returned, and errno is set appropriately.
         if (dup2(fileno(fopen(config->in_file, "r")), 0) == -1) {
-            print("dup2 stdin failed");
+            log("dup2 stdin failed");
             return DUP2_FAILED;
         }
         // write stdout to out file
         if (dup2(fileno(fopen(config->out_file, "w")), 1) == -1) {
-            print("dup2 stdout failed");
+            log("dup2 stdout failed");
             return DUP2_FAILED;
         }
 
         execve(config->path, config->args, config->env);
-        print("execve failed");
+        log("execve failed");
         return EXCEVE_FAILED;
     }
 }
