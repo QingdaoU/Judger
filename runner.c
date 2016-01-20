@@ -35,8 +35,7 @@ int run(struct config *config, struct result *result) {
     int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(write), SCMP_SYS(fstat),
                                 SCMP_SYS(mmap), SCMP_SYS(mprotect), SCMP_SYS(munmap), 
                                 SCMP_SYS(open), SCMP_SYS(arch_prctl), SCMP_SYS(brk), 
-                                SCMP_SYS(access), SCMP_SYS(exit_group), SCMP_SYS(execve), 
-                                SCMP_SYS(close)};
+                                SCMP_SYS(access), SCMP_SYS(exit_group), SCMP_SYS(close)};
 
     int syscalls_whitelist_length = sizeof(syscalls_whitelist) / sizeof(int);
     scmp_filter_ctx ctx = NULL;
