@@ -36,7 +36,7 @@ int run(struct config *config, struct result *result) {
                                 SCMP_SYS(mmap), SCMP_SYS(mprotect), SCMP_SYS(munmap),
                                 SCMP_SYS(brk), SCMP_SYS(access), SCMP_SYS(exit_group)};
 
-    int seccomp_white_list_length = sizeof(syscalls_whitelist) / sizeof(int);
+    int syscalls_whitelist_length = sizeof(syscalls_whitelist) / sizeof(int);
     scmp_filter_ctx ctx = NULL;
 
 #ifdef __APPLE__
@@ -162,11 +162,13 @@ int run(struct config *config, struct result *result) {
         if (!ctx) {
             exit(LOAD_SECCOMP_FAILED);
         }
-        for(i = 0; i < seccomp_white_list_length; i++) {
+        for(i = 0; i < syscalls_whitelist_length; i++) {
             if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscalls_whitelist[i], 0)) {
                 exit(LOAD_SECCOMP_FAILED);
             }
         }
+        // add extra rule for execve
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, config->path));
         if (seccomp_load(ctx)) {
             exit(LOAD_SECCOMP_FAILED);
         }
