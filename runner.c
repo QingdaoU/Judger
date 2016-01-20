@@ -2,6 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <seccomp.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
@@ -30,6 +31,13 @@ int run(struct config *config, struct result *result) {
     struct rlimit memory_limit;
     int signal;
     int return_code;
+    int i;
+    int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(write), SCMP_SYS(fstat),
+                                SCMP_SYS(mmap), SCMP_SYS(mprotect), SCMP_SYS(munmap),
+                                SCMP_SYS(brk), SCMP_SYS(access), SCMP_SYS(exit_group)};
+
+    int seccomp_white_list_length = sizeof(syscalls_whitelist) / sizeof(int);
+    scmp_filter_ctx ctx = NULL;
 
 #ifdef __APPLE__
     log("Warning: setrlimit with RLIMIT_AS to limit memory usage will not work on OSX");
@@ -148,6 +156,21 @@ int run(struct config *config, struct result *result) {
             log("dup2 stdout failed");
             return DUP2_FAILED;
         }
+
+        // load seccomp rules
+        ctx = seccomp_init(SCMP_ACT_KILL);
+        if (!ctx) {
+            exit(LOAD_SECCOMP_FAILED);
+        }
+        for(i = 0; i < seccomp_white_list_length; i++) {
+            if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscalls_whitelist[i], 0)) {
+                exit(LOAD_SECCOMP_FAILED);
+            }
+        }
+        if (seccomp_load(ctx)) {
+            exit(LOAD_SECCOMP_FAILED);
+        }
+        seccomp_release(ctx);
 
         execve(config->path, config->args, config->env);
         log("execve failed");
