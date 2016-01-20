@@ -32,10 +32,12 @@ int run(struct config *config, struct result *result) {
     int signal;
     int return_code;
     int i;
-    int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(write), SCMP_SYS(fstat),
-                                SCMP_SYS(mmap), SCMP_SYS(mprotect), SCMP_SYS(munmap), 
-                                SCMP_SYS(open), SCMP_SYS(arch_prctl), SCMP_SYS(brk), 
-                                SCMP_SYS(access), SCMP_SYS(exit_group), SCMP_SYS(close)};
+    int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(fstat),
+                                SCMP_SYS(mmap), SCMP_SYS(mprotect), 
+                                SCMP_SYS(munmap), SCMP_SYS(open), 
+                                SCMP_SYS(arch_prctl), SCMP_SYS(brk), 
+                                SCMP_SYS(access), SCMP_SYS(exit_group), 
+                                SCMP_SYS(close)};
 
     int syscalls_whitelist_length = sizeof(syscalls_whitelist) / sizeof(int);
     scmp_filter_ctx ctx = NULL;
@@ -170,6 +172,8 @@ int run(struct config *config, struct result *result) {
         }
         // add extra rule for execve
         seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, config->path));
+        // only fd 0 1 2 are allowed
+        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 1, SCMP_A0(SCMP_CMP_LE, 2));
         if (seccomp_load(ctx)) {
             exit(LOAD_SECCOMP_FAILED);
         }
