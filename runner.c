@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <seccomp.h>
+#include <signal.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
@@ -89,11 +90,12 @@ int run(struct config *config, struct result *result) {
         result->flag = result->error = SUCCESS;
 
         return_code = WEXITSTATUS(status);
-        if (return_code) {
+        // The return code is from user's code
+        if (return_code && !WIFSIGNALED(status)) {
             log("Error child return code, return code: %d", return_code);
             result->flag = RUNTIME_ERROR;
             result->error = return_code;
-            return RUN_FAILED;
+            return SUCCESS;
         }
 
         if (WIFSIGNALED(status)) {
@@ -113,6 +115,11 @@ int run(struct config *config, struct result *result) {
                 else {
                     result->flag = RUNTIME_ERROR;
                 }
+            }
+            // Child process error
+            else if (signal == SIGUSR1){
+                result->flag = SYSTEM_ERROR;
+                result->error = return_code;
             }
             else {
                 result->flag = RUNTIME_ERROR;
@@ -134,17 +141,17 @@ int run(struct config *config, struct result *result) {
         // On error, -1 is returned, and errno is set appropriately.
         if (setrlimit(RLIMIT_AS, &memory_limit)) {
             log("setrlimit failed\n");
-            return SETRLIMIT_FAILED;
+            ERROR(SETRLIMIT_FAILED);
         }
         // cpu time
         if (set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1)) {
             log("Set cpu time timer failed");
-            return SETITIMER_FAILED;
+            ERROR(SETITIMER_FAILED);
         }
         // real time * 3
         if (set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0)) {
             log("Set real time timer failed");
-            return SETITIMER_FAILED;
+            ERROR(SETITIMER_FAILED);
         }
 
         // read stdin from in file
@@ -152,35 +159,39 @@ int run(struct config *config, struct result *result) {
         // On error, -1 is returned, and errno is set appropriately.
         if (dup2(fileno(fopen(config->in_file, "r")), 0) == -1) {
             log("dup2 stdin failed");
-            return DUP2_FAILED;
+            ERROR(DUP2_FAILED);
         }
         // write stdout to out file
         if (dup2(fileno(fopen(config->out_file, "w")), 1) == -1) {
             log("dup2 stdout failed");
-            return DUP2_FAILED;
+            ERROR(DUP2_FAILED);
         }
 
         // load seccomp rules
         ctx = seccomp_init(SCMP_ACT_KILL);
         if (!ctx) {
-            exit(LOAD_SECCOMP_FAILED);
+            ERROR(LOAD_SECCOMP_FAILED);
         }
         for(i = 0; i < syscalls_whitelist_length; i++) {
             if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscalls_whitelist[i], 0)) {
-                exit(LOAD_SECCOMP_FAILED);
+                ERROR(LOAD_SECCOMP_FAILED);
             }
         }
         // add extra rule for execve
-        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, config->path));
+        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, config->path))) {
+            ERROR(LOAD_SECCOMP_FAILED);
+        }
         // only fd 0 1 2 are allowed
-        seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 1, SCMP_A0(SCMP_CMP_LE, 2));
+        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 1, SCMP_A0(SCMP_CMP_LE, 2))) {
+            ERROR(LOAD_SECCOMP_FAILED);
+        }
         if (seccomp_load(ctx)) {
-            exit(LOAD_SECCOMP_FAILED);
+            ERROR(LOAD_SECCOMP_FAILED);
         }
         seccomp_release(ctx);
 
         execve(config->path, config->args, config->env);
         log("execve failed");
-        return EXCEVE_FAILED;
+        ERROR(EXCEVE_FAILED);
     }
 }

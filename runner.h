@@ -29,6 +29,7 @@
 #define RUNTIME_ERROR 4
 #define SYSTEM_ERROR 5
 
+#define ERROR(code) raise(SIGUSR1);return code
 
 struct result {
     int cpu_time;
