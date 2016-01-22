@@ -167,29 +167,30 @@ int run(struct config *config, struct result *result) {
             ERROR(DUP2_FAILED);
         }
 
-        // load seccomp rules
-        ctx = seccomp_init(SCMP_ACT_KILL);
-        if (!ctx) {
-            ERROR(LOAD_SECCOMP_FAILED);
-        }
-        for(i = 0; i < syscalls_whitelist_length; i++) {
-            if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscalls_whitelist[i], 0)) {
+        if (config->use_sandbox) {
+            // load seccomp rules
+            ctx = seccomp_init(SCMP_ACT_KILL);
+            if (!ctx) {
                 ERROR(LOAD_SECCOMP_FAILED);
             }
+            for (i = 0; i < syscalls_whitelist_length; i++) {
+                if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscalls_whitelist[i], 0)) {
+                    ERROR(LOAD_SECCOMP_FAILED);
+                }
+            }
+            // add extra rule for execve
+            if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, config->path))) {
+                ERROR(LOAD_SECCOMP_FAILED);
+            }
+            // only fd 0 1 2 are allowed
+            if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 1, SCMP_A0(SCMP_CMP_LE, 2))) {
+                ERROR(LOAD_SECCOMP_FAILED);
+            }
+            if (seccomp_load(ctx)) {
+                ERROR(LOAD_SECCOMP_FAILED);
+            }
+            seccomp_release(ctx);
         }
-        // add extra rule for execve
-        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, config->path))) {
-            ERROR(LOAD_SECCOMP_FAILED);
-        }
-        // only fd 0 1 2 are allowed
-        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 1, SCMP_A0(SCMP_CMP_LE, 2))) {
-            ERROR(LOAD_SECCOMP_FAILED);
-        }
-        if (seccomp_load(ctx)) {
-            ERROR(LOAD_SECCOMP_FAILED);
-        }
-        seccomp_release(ctx);
-
         execve(config->path, config->args, config->env);
         log("execve failed");
         ERROR(EXCEVE_FAILED);

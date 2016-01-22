@@ -8,7 +8,7 @@ static PyObject *error;
 static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     struct config config;
     struct result result = {0, 0, 0, 0, 0, 1};
-    PyObject *args_list = NULL, *env_list = NULL, *use_sandbox, *next = NULL, *args_iter = NULL, *env_iter = NULL;
+    PyObject *args_list = NULL, *env_list = NULL, *use_sandbox = NULL, *next = NULL, *args_iter = NULL, *env_iter = NULL;
     int count = 0;
     static char *kwargs_list[] = {"path", "in_file", "out_file", "max_cpu_time",
                                   "max_memory", "args", "env", "use_sandbox", NULL};
