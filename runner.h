@@ -49,6 +49,7 @@ struct config {
     char *out_file;
     char *args[100];
     char *env[100];
+    int use_sandbox;
 };
 
 
