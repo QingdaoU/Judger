@@ -11,6 +11,7 @@ print judger.run(path=os.path.join(base_path, "test"),
                  out_file=os.path.join(base_path, "out"),
                  max_cpu_time=2000,
                  max_memory=200000000,
-                 args=["1", "2", "####"],
-                 env=["LD_PRELOAD=" + os.path.join(base_path, "sandbox.so")])
+                 args=["1", "2", "####"], 
+                 env=[],
+                 use_sandbox=True)
 
