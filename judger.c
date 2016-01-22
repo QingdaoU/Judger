@@ -2,9 +2,6 @@
 #include "runner.h"
 
 
-static PyObject *error;
-
-
 static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     struct config config;
     struct result result = {0, 0, 0, 0, 0, 1};
@@ -17,28 +14,28 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sssii|OOO", kwargs_list, &(config.path), &(config.in_file),
                                      &(config.out_file), &(config.max_cpu_time), &(config.max_memory),
                                      &args_list, &env_list, &use_sandbox)) {
-        PyErr_SetString(error, "Invalid args and kwargs");
+        PyErr_SetString(PyExc_ValueError, "Invalid args and kwargs");
         return NULL;
     }
     if (config.max_cpu_time <= 1) {
-        PyErr_SetString(error, "Max cpu time can not less than 1 ms");
+        PyErr_SetString(PyExc_ValueError, "Max cpu time can not less than 1 ms");
         return NULL;
     }
     if (config.max_memory < 16 * 1024 * 1024) {
-        PyErr_SetString(error, "Max memory can not be less than 16M");
+        PyErr_SetString(PyExc_ValueError, "Max memory can not be less than 16M");
         return NULL;
     }
     if (access(config.path, F_OK) == -1) {
-        PyErr_SetString(error, "Exec file does not exist");
+        PyErr_SetString(PyExc_ValueError, "Exec file does not exist");
         return NULL;
     }
     if (access(config.in_file, F_OK) == -1) {
-        PyErr_SetString(error, "Input file does not exist");
+        PyErr_SetString(PyExc_ValueError, "Input file does not exist");
         return NULL;
     }
     if (args_list != NULL) {
         if (!PyList_Check(args_list)) {
-            PyErr_SetString(error, "args must be a list");
+            PyErr_SetString(PyExc_ValueError, "args must be a list");
             return NULL;
         }
 
@@ -49,7 +46,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
                 break;
             }
             if (!PyString_Check(next)) {
-                PyErr_SetString(error, "arg must be string");
+                PyErr_SetString(PyExc_ValueError, "arg must be string");
                 return NULL;
             }
             config.args[count] = PyString_AsString(next);
@@ -61,7 +58,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     count = 0;
     if (env_list != NULL) {
         if (!PyList_Check(env_list)) {
-            PyErr_SetString(error, "env must be a list");
+            PyErr_SetString(PyExc_ValueError, "env must be a list");
             return NULL;
         }
         env_iter = PyObject_GetIter(env_list);
@@ -71,7 +68,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
                 break;
             }
             if (!PyString_Check(next)) {
-                PyErr_SetString(error, "env must be string");
+                PyErr_SetString(PyExc_ValueError, "env must be string");
                 return NULL;
             }
             config.env[count] = PyString_AsString(next);
@@ -82,7 +79,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
 
     if (use_sandbox != NULL) {
         if (!PyBool_Check(use_sandbox)) {
-            PyErr_SetString(error, "use sandbox must ba a bool");
+            PyErr_SetString(PyExc_ValueError, "use sandbox must ba a bool");
             return NULL;
         }
         config.use_sandbox = PyObject_IsTrue(use_sandbox);
@@ -103,8 +100,5 @@ static PyMethodDef judger_methods[] = {
 
 
 PyMODINIT_FUNC initjudger(void) {
-    PyObject *module = Py_InitModule3("judger", judger_methods, NULL);
-    error = PyErr_NewException("judger.error", NULL, NULL);
-    Py_INCREF(error);
-    PyModule_AddObject(module, "error", error);
+    Py_InitModule3("judger", judger_methods, NULL);
 }
