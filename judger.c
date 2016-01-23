@@ -33,6 +33,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_ValueError, "Input file does not exist");
         return NULL;
     }
+    config.args[count++] = config.path;
     if (args_list != NULL) {
         if (!PyList_Check(args_list)) {
             PyErr_SetString(PyExc_ValueError, "args must be a list");
