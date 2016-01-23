@@ -31,7 +31,6 @@ void run(struct config *config, struct result *result) {
     struct timeval start, end;
     struct rlimit memory_limit;
     int signal;
-    int return_code;
     int i;
     int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(fstat),
                                 SCMP_SYS(mmap), SCMP_SYS(mprotect), 
