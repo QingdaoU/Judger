@@ -31,7 +31,7 @@
 #define RUNTIME_ERROR 4
 #define SYSTEM_ERROR 5
 
-#define ERROR(code) raise(SIGUSR1);return code
+#define ERROR(code) raise(SIGUSR1)
 
 #define NOBODY_UID 65534
 #define NOBODY_GID 65534
@@ -42,7 +42,6 @@ struct result {
     int real_time;
     int signal;
     int flag;
-    int error;
 };
 
 
@@ -58,5 +57,5 @@ struct config {
 };
 
 
-int run(struct config *, struct result *);
+void run(struct config *, struct result *);
 

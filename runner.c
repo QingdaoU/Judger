@@ -25,7 +25,7 @@ int set_timer(int sec, int ms, int is_cpu_time) {
 }
 
 
-int run(struct config *config, struct result *result) {
+void run(struct config *config, struct result *result) {
     int status;
     struct rusage resource_usage;
     struct timeval start, end;
@@ -56,11 +56,10 @@ int run(struct config *config, struct result *result) {
     if (pid < 0) {
         log("fork failed");
         result->flag = SYSTEM_ERROR;
-        result->error = FORK_FAILED;
-        return RUN_FAILED;
+        return;
     }
 
-    if (pid) {
+    if (pid > 0) {
         // parent process
 
         // on success, returns the process ID of the child whose state has changed;
@@ -68,8 +67,7 @@ int run(struct config *config, struct result *result) {
         if (wait4(pid, &status, 0, &resource_usage) == -1) {
             log("wait4 failed");
             result->flag = SYSTEM_ERROR;
-            result->error = WAIT4_FAILED;
-            return RUN_FAILED;
+            return;
         }
         result->cpu_time = (int) (resource_usage.ru_utime.tv_sec * 1000 +
                                   resource_usage.ru_utime.tv_usec / 1000 +
@@ -87,16 +85,7 @@ int run(struct config *config, struct result *result) {
         result->memory = result->memory * 1024;
 #endif
         result->signal = 0;
-        result->flag = result->error = SUCCESS;
-
-        return_code = WEXITSTATUS(status);
-        // The return code is from user's code
-        if (return_code && !WIFSIGNALED(status)) {
-            log("Error child return code, return code: %d", return_code);
-            result->flag = RUNTIME_ERROR;
-            result->error = return_code;
-            return SUCCESS;
-        }
+        result->flag = SUCCESS;
 
         if (WIFSIGNALED(status)) {
             signal = WTERMSIG(status);
@@ -119,7 +108,6 @@ int run(struct config *config, struct result *result) {
             // Child process error
             else if (signal == SIGUSR1){
                 result->flag = SYSTEM_ERROR;
-                result->error = return_code;
             }
             else {
                 result->flag = RUNTIME_ERROR;
@@ -132,24 +120,23 @@ int run(struct config *config, struct result *result) {
         }
         gettimeofday(&end, NULL);
         result->real_time = (int) (end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
-        return SUCCESS;
     }
     else {
         // child process
         log("I'm child process\n");
         // On success, these system calls return 0.
         // On error, -1 is returned, and errno is set appropriately.
-        if (setrlimit(RLIMIT_AS, &memory_limit)) {
+        if (setrlimit(RLIMIT_AS, &memory_limit) == -1) {
             log("setrlimit failed\n");
             ERROR(SETRLIMIT_FAILED);
         }
         // cpu time
-        if (set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1)) {
+        if (set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1) != SUCCESS) {
             log("Set cpu time timer failed");
             ERROR(SETITIMER_FAILED);
         }
         // real time * 3
-        if (set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0)) {
+        if (set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0) != SUCCESS) {
             log("Set real time timer failed");
             ERROR(SETITIMER_FAILED);
         }
@@ -167,11 +154,13 @@ int run(struct config *config, struct result *result) {
             ERROR(DUP2_FAILED);
         }
 
-        if (setuid(NOBODY_UID) == -1) {
-            ERROR(SET_UID_FAILED);
-        }
         if (setgid(NOBODY_GID) == -1) {
+            log("setgid failed");
             ERROR(SET_GID_FAILED);
+        }
+        if (setuid(NOBODY_UID) == -1) {
+            log("setuid failed");
+            ERROR(SET_UID_FAILED);
         }
 
         if (config->use_sandbox) {

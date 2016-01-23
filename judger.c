@@ -89,9 +89,9 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     }
 
     run(&config, &result);
-    return Py_BuildValue("{s:i, s:l, s:i, s:i, s:i, s:i}",
+    return Py_BuildValue("{s:i, s:l, s:i, s:i, s:i}",
                          "cpu_time", result.cpu_time, "memory", result.memory, "real_time", result.real_time, "signal",
-                         result.signal, "flag", result.flag, "error", result.error);
+                         result.signal, "flag", result.flag);
 
 }
 
