@@ -167,6 +167,13 @@ int run(struct config *config, struct result *result) {
             ERROR(DUP2_FAILED);
         }
 
+        if (setuid(NOBODY_UID) == -1) {
+            ERROR(SET_UID_FAILED);
+        }
+        if (setgid(NOBODY_GID) == -1) {
+            ERROR(SET_GID_FAILED);
+        }
+
         if (config->use_sandbox) {
             // load seccomp rules
             ctx = seccomp_init(SCMP_ACT_KILL);

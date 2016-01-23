@@ -22,6 +22,8 @@
 #define DUP2_FAILED 6
 #define EXCEVE_FAILED 7
 #define LOAD_SECCOMP_FAILED 8
+#define SET_UID_FAILED 9
+#define SET_GID_FAILED 10
 
 #define CPU_TIME_LIMIT_EXCEEDED 1
 #define REAL_TIME_LIMIT_EXCEEDED 2
@@ -30,6 +32,9 @@
 #define SYSTEM_ERROR 5
 
 #define ERROR(code) raise(SIGUSR1);return code
+
+#define NOBODY_UID 65534
+#define NOBODY_GID 65534
 
 struct result {
     int cpu_time;
