@@ -84,6 +84,9 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         }
         config.use_sandbox = PyObject_IsTrue(use_sandbox);
     }
+    else {
+        config.use_sandbox = 1;
+    }
 
     run(&config, &result);
     return Py_BuildValue("{s:i, s:l, s:i, s:i, s:i, s:i}",
