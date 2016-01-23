@@ -26,11 +26,13 @@ class JudgerTest(TestCase):
         for i in range(1, 9):
             test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), str(i))
             exe_path = os.path.join("/tmp/judger_test", str(i))
-            self.assertEqual(self.compile_src(os.path.join(test_dir, "Main.c"), "c", exe_path), 0)
+            config = json.loads(open(os.path.join(test_dir, "config")).read())
+            self.assertEqual(self.compile_src(os.path.join(test_dir, "Main.c"), config.pop("language"), exe_path), 0)
+
             run_result = judger.run(path=exe_path,
                                     in_file=os.path.join(test_dir, "in"),
                                     out_file=os.path.join(self.tmp_path, str(i) + ".out"),
-                                    max_cpu_time=2000, max_memory=200000000, args=["hello", "123"])
+                                    **config)
             result = json.loads(open(os.path.join(test_dir, "result")).read())
             self.assertEqual(result["flag"], run_result["flag"])
             self.assertEqual(result["signal"], run_result["signal"])

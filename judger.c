@@ -46,7 +46,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
             if (!next) {
                 break;
             }
-            if (!PyString_Check(next)) {
+            if (!PyString_Check(next) && !PyUnicode_Check(next)) {
                 PyErr_SetString(PyExc_ValueError, "arg must be string");
                 return NULL;
             }
@@ -68,7 +68,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
             if (!next) {
                 break;
             }
-            if (!PyString_Check(next)) {
+            if (!PyString_Check(next) && !PyUnicode_Check(next)) {
                 PyErr_SetString(PyExc_ValueError, "env must be string");
                 return NULL;
             }
