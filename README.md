@@ -20,3 +20,8 @@ cd demo && sudo python demo.py
 ##注意
  - 因为需要切换为 `nobody` 用户运行用户代码，所以需要 `root` 权限启动。
  - Python api 请不要使用中文 Unicode。
+ 
+##感谢
+ - https://github.com/lodevil/Lo-runner
+ - https://github.com/quark-zju/lrun
+ - https://github.com/daveho/EasySandbox
