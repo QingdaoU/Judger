@@ -23,7 +23,11 @@ class JudgerTest(TestCase):
     def test_run(self):
         shutil.rmtree(self.tmp_path, ignore_errors=True)
         os.mkdir(self.tmp_path)
-        for i in range(1, 9):
+        for i in os.listdir("."):
+            try:
+                int(i)
+            except Exception:
+                continue
             test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), str(i))
             exe_path = os.path.join("/tmp/judger_test", str(i))
             config = json.loads(open(os.path.join(test_dir, "config")).read())
