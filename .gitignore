@@ -5,4 +5,4 @@ limit
 runner
 CMakeLists.txt
 main
-demo/out
+demo

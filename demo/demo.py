@@ -5,8 +5,19 @@ import judger
 base_path = os.path.dirname(os.path.abspath(__file__))
 
 
+def _compile():
+    return judger.run(path="/usr/bin/gcc",
+                      in_file=os.path.join(base_path, "in"),
+                      out_file=os.path.join(base_path, "gcc_out"),
+                      max_cpu_time=2000,
+                      max_memory=200000000,
+                      args=[os.path.join(base_path, "demo.c"), "-o", os.path.join(base_path, "demo")],
+                      env=["PATH=" + os.environ["PATH"]],
+                      use_sandbox=False)
+
+
 def run(use_sandbox):
-    os.system("gcc demo.c -o demo")
+    _compile()
     path = os.path.join(base_path, "demo")
     return judger.run(path=path,
                       in_file=os.path.join(base_path, "in"),
