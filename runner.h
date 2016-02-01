@@ -2,16 +2,6 @@
 #define JUDGER_RUNNER_H
 #endif
 
-
-#define __DEBUG__
-
-
-#ifdef __DEBUG__
-#define log(format, ...) printf("File: "__FILE__", Line: %05d: "format"\n", __LINE__, ##__VA_ARGS__)
-#else
-#define log(format,...)
-#endif
-
 #define SUCCESS 0
 
 #define FORK_FAILED 1
