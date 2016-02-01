@@ -156,6 +156,11 @@ void run(struct config *config, struct result *result) {
             LOG_FATAL("dup2 stdout failed, errno: %d", errno);
             ERROR(DUP2_FAILED);
         }
+        // redirect stderr to stdout
+        if (dup2(fileno(stdout), fileno(stderr)) == -1) {
+            LOG_FATAL("dup2 stderr failed, errno: %d", errno);
+            ERROR(DUP2_FAILED);
+        }
 
         if (config->use_sandbox) {
             if (setgid(NOBODY_GID)) {
