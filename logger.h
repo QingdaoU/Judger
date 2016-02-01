@@ -41,7 +41,7 @@
 #include <sys/file.h>
 
 int log_open(const char *filename);
-void log_close();
+void log_close(void);
 static void log_write(int, const char *, const int, const char *, ...);
 void log_add_info(const char *info);
 
@@ -89,7 +89,7 @@ int log_open(const char* filename)
     return 1;
 }
 
-void log_close()
+void log_close(void)
 {
     if (log_opened)
     {
