@@ -121,6 +121,9 @@ void run(struct config *config, struct result *result) {
             if (result->memory > config->max_memory) {
                 result->flag = MEMORY_LIMIT_EXCEEDED;
             }
+            if (WEXITSTATUS(status) != 0) {
+                result->flag = RUNTIME_ERROR;
+            }
         }
         gettimeofday(&end, NULL);
         result->real_time = (int) (end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
