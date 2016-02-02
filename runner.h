@@ -32,6 +32,7 @@ struct result {
     int real_time;
     int signal;
     int flag;
+    int exit_status;
 };
 
 

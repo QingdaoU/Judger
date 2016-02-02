@@ -4,7 +4,7 @@
 
 static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     struct config config;
-    struct result result = {0, 0, 0, 0, 0};
+    struct result result = {0, 0, 0, 0, 0, 0};
     PyObject *args_list = NULL, *env_list = NULL, *use_sandbox = NULL, *next = NULL, *args_iter = NULL, *env_iter = NULL;
     int count = 0;
     static char *kwargs_list[] = {"path", "in_file", "out_file", "max_cpu_time",
@@ -90,9 +90,9 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     }
 
     run(&config, &result);
-    return Py_BuildValue("{s:i, s:l, s:i, s:i, s:i}",
+    return Py_BuildValue("{s:i, s:l, s:i, s:i, s:i, s:i}",
                          "cpu_time", result.cpu_time, "memory", result.memory, "real_time", result.real_time, "signal",
-                         result.signal, "flag", result.flag);
+                         result.signal, "flag", result.flag, "exit_status", result.exit_status);
 
 }
 

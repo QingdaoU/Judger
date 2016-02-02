@@ -73,6 +73,7 @@ void run(struct config *config, struct result *result) {
             return;
         }
         LOG_DEBUG("exit status: %d", WEXITSTATUS(status));
+        result->exit_status = WEXITSTATUS(status);
         result->cpu_time = (int) (resource_usage.ru_utime.tv_sec * 1000 +
                                   resource_usage.ru_utime.tv_usec / 1000 +
                                   resource_usage.ru_stime.tv_sec * 1000 +
