@@ -1,3 +1,6 @@
+/*
+ * 测试实际运行时间超限
+ */
 #include <stdio.h>
 #include <stdlib.h>
 

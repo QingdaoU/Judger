@@ -1,5 +1,5 @@
 /*
- * 正常运行的程序
+ * 测试stdout和stderr重定向
  */
 
 #include <stdio.h>

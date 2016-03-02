@@ -1,3 +1,6 @@
+/*
+ * 测试args参数
+ */
 #include <stdio.h>
 
 

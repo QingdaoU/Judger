@@ -1,3 +1,6 @@
+/*
+ * 测试环境变量参数
+ */
 #include <stdio.h>
 #include <stdlib.h>
 

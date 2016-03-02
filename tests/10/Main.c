@@ -1,3 +1,6 @@
+/*
+ * 测试cpu时间超限
+ */
 #include <stdio.h>
 #include <stdlib.h>
 
