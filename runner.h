@@ -45,6 +45,7 @@ struct config {
     char *args[100];
     char *env[100];
     int use_sandbox;
+    int use_nobody;
 };
 
 

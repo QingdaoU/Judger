@@ -13,11 +13,12 @@ def _compile():
                       max_memory=200000000,
                       args=[os.path.join(base_path, "demo.c"), "-o", os.path.join(base_path, "demo")],
                       env=["PATH=" + os.environ["PATH"]],
-                      use_sandbox=False)
+                      use_sandbox=False, 
+                      use_nobody=False)
 
 
-def run(use_sandbox):
-    _compile()
+def run(use_sandbox, use_nobody):
+    print "compile result: ", _compile()
     path = os.path.join(base_path, "demo")
     return judger.run(path=path,
                       in_file=os.path.join(base_path, "in"),
@@ -30,10 +31,17 @@ def run(use_sandbox):
                       args=["1", "2", "####"],
                       env=["aaa=123"],
                       # default is True
-                      use_sandbox=use_sandbox)
+                      use_sandbox=use_sandbox,
+                      use_nobody=use_nobody)
 
 
-print "With sandbox"
-print run(use_sandbox=True)
-print 'Without sandbox'
-print run(use_sandbox=False)
+print "sandbox and nobody"
+print run(use_sandbox=True, use_nobody=True)
+
+print '\n\nno sandbox and root'
+print run(use_sandbox=False, use_nobody=False)
+print "\n\nout: ", open("out").read()
+
+print "\n\nno sandbox and nobody"
+print run(use_sandbox=False, use_nobody=True)
+print "\n\nout: ", open("out").read()

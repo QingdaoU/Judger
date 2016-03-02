@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 
 int main(int argc, char *argv[]) {
@@ -28,5 +29,6 @@ int main(int argc, char *argv[]) {
     }
     printf("begin to execute command\n");
     system("/bin/ls /tmp");
+    printf("uid: %d", getuid());
     return 0;
 }

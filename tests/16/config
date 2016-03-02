@@ -1,0 +1,1 @@
+{"language": "c", "max_cpu_time": 2000, "max_memory": 20000000, "use_sandbox": false, "use_nobody": true}

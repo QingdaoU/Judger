@@ -166,7 +166,7 @@ void run(struct config *config, struct result *result) {
             ERROR(DUP2_FAILED);
         }
 
-        if (config->use_sandbox) {
+        if (config->use_nobody) {
             if (setgid(NOBODY_GID)) {
                 LOG_FATAL("setgid failed, errno: %d", errno);
                 ERROR(SET_GID_FAILED);
@@ -175,7 +175,9 @@ void run(struct config *config, struct result *result) {
                 LOG_FATAL("setuid failed, errno: %d", errno);
                 ERROR(SET_UID_FAILED);
             }
-            
+        }
+
+        if (config->use_sandbox) {
             // load seccomp rules
             ctx = seccomp_init(SCMP_ACT_KILL);
             if (!ctx) {

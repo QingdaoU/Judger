@@ -5,15 +5,16 @@
 static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     struct config config;
     struct result result = {0, 0, 0, 0, 0, 0};
-    PyObject *args_list = NULL, *env_list = NULL, *use_sandbox = NULL, *next = NULL, *args_iter = NULL, *env_iter = NULL;
+    PyObject *args_list = NULL, *env_list = NULL, *use_sandbox = NULL, *use_nobody = NULL,
+            *next = NULL, *args_iter = NULL, *env_iter = NULL;
     int count = 0;
     static char *kwargs_list[] = {"path", "in_file", "out_file", "max_cpu_time",
-                                  "max_memory", "args", "env", "use_sandbox", NULL};
+                                  "max_memory", "args", "env", "use_sandbox", "use_nobody", NULL};
 
     config.path = config.in_file = config.out_file = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sssii|OOO", kwargs_list, &(config.path), &(config.in_file),
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sssii|OOOO", kwargs_list, &(config.path), &(config.in_file),
                                      &(config.out_file), &(config.max_cpu_time), &(config.max_memory),
-                                     &args_list, &env_list, &use_sandbox)) {
+                                     &args_list, &env_list, &use_sandbox, &use_nobody)) {
         PyErr_SetString(PyExc_ValueError, "Invalid args and kwargs");
         return NULL;
     }
@@ -87,6 +88,17 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     }
     else {
         config.use_sandbox = 1;
+    }
+
+    if (use_nobody != NULL) {
+        if (!PyBool_Check(use_nobody)) {
+            PyErr_SetString(PyExc_ValueError, "use nobody must be a bool");
+            return NULL;
+        }
+        config.use_nobody = PyObject_IsTrue(use_nobody);
+    }
+    else {
+        config.use_nobody = 1;
     }
 
     run(&config, &result);

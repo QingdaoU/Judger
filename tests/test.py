@@ -28,6 +28,7 @@ class JudgerTest(TestCase):
                 int(i)
             except Exception:
                 continue
+            print "\n\nRunning test: ", i
             test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), str(i))
             exe_path = os.path.join("/tmp/judger_test", str(i))
             config = json.loads(open(os.path.join(test_dir, "config")).read())
