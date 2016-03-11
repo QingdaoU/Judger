@@ -78,7 +78,10 @@ void run(struct config *config, struct result *result) {
                                   resource_usage.ru_utime.tv_usec / 1000 +
                                   resource_usage.ru_stime.tv_sec * 1000 +
                                   resource_usage.ru_stime.tv_usec / 1000);
-
+         // avoid 0 ms
+        if(result->cpu_time == 0) {
+            result->cpu_time = 1;
+        }
         result->memory = resource_usage.ru_maxrss;
 
         // osx: ru_maxrss the maximum resident set size utilized (in bytes).
