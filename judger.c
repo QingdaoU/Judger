@@ -1,3 +1,5 @@
+#include <unistd.h>
+#include <sys/types.h>
 #include <python2.7/Python.h>
 #include "runner.h"
 
@@ -53,6 +55,10 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
             }
             config.args[count] = PyString_AsString(next);
             count++;
+            if(count > 95) {
+                PyErr_SetString(PyExc_ValueError, "max number of args is 95");
+                return NULL;
+            }
         }
     }
     config.args[count] = NULL;
@@ -75,6 +81,10 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
             }
             config.env[count] = PyString_AsString(next);
             count++;
+            if(count > 95) {
+                PyErr_SetString(PyExc_ValueError, "max number of env is 95");
+                return NULL;
+            }
         }
     }
     config.env[count] = NULL;
@@ -99,6 +109,11 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     }
     else {
         config.use_nobody = 1;
+    }
+
+    if(config.use_nobody && getuid() != 0) {
+        PyErr_SetString(PyExc_ValueError, "root use is required when using nobody");
+        return NULL;
     }
 
     run(&config, &result);
