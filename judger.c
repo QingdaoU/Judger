@@ -112,7 +112,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     }
 
     if(config.use_nobody && getuid() != 0) {
-        PyErr_SetString(PyExc_ValueError, "root use is required when using nobody");
+        PyErr_SetString(PyExc_ValueError, "root user is required when using nobody");
         return NULL;
     }
 
