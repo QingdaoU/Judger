@@ -2,6 +2,9 @@
 #define JUDGER_RUNNER_H
 #endif
 
+#include <pwd.h>
+#include <sys/types.h>
+
 #define SUCCESS 0
 
 #define FORK_FAILED 1
@@ -23,8 +26,9 @@
 
 #define ERROR(code) raise(SIGUSR1)
 
-#define NOBODY_UID 65534
-#define NOBODY_GID 65534
+#define NOBODY_UID (getpwnam("nobody")->pw_uid)
+#define NOBODY_GID (getpwnam("nobody")->pw_gid)
+
 
 struct result {
     int cpu_time;

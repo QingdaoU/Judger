@@ -47,7 +47,7 @@ void run(struct config *config, struct result *result) {
     log_open("judger.log");
 
 #ifdef __APPLE__
-    LOG_WARNING("setrlimit with RLIMIT_AS to limit memory usage will not work on OSX");
+    #warning "setrlimit with RLIMIT_AS to limit memory usage will not work on OSX"
 #endif
 
     gettimeofday(&start, NULL);
@@ -89,13 +89,11 @@ void run(struct config *config, struct result *result) {
         // For RUSAGE_CHILDREN, this is the resident set size of the largest child,
         // not the maximum resident set size of the processtree.
 
-#ifdef __linux__
         result->memory = result->memory * 1024;
-#endif
         result->signal = 0;
         result->flag = SUCCESS;
 
-        if (WIFSIGNALED(status)) {
+        if (WIFSIGNALED(status) != 0) {
             signal = WTERMSIG(status);
             LOG_DEBUG("signal: %d", signal);
             result->signal = signal;
@@ -136,7 +134,7 @@ void run(struct config *config, struct result *result) {
         // child process
         // On success, these system calls return 0.
         // On error, -1 is returned, and errno is set appropriately.
-        if (setrlimit(RLIMIT_AS, &memory_limit)) {
+        if (setrlimit(RLIMIT_AS, &memory_limit) == -1) {
             LOG_FATAL("setrlimit failed, errno: %d", errno);
             ERROR(SETRLIMIT_FAILED);
         }
@@ -170,11 +168,11 @@ void run(struct config *config, struct result *result) {
         }
 
         if (config->use_nobody) {
-            if (setgid(NOBODY_GID)) {
+            if (setgid(NOBODY_GID) == -1) {
                 LOG_FATAL("setgid failed, errno: %d", errno);
                 ERROR(SET_GID_FAILED);
             }
-            if (setuid(NOBODY_UID)) {
+            if (setuid(NOBODY_UID) == -1) {
                 LOG_FATAL("setuid failed, errno: %d", errno);
                 ERROR(SET_UID_FAILED);
             }
@@ -188,22 +186,22 @@ void run(struct config *config, struct result *result) {
                 ERROR(LOAD_SECCOMP_FAILED);
             }
             for (i = 0; i < syscalls_whitelist_length; i++) {
-                if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscalls_whitelist[i], 0)) {
+                if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscalls_whitelist[i], 0) != 0) {
                     LOG_FATAL("load syscall white list failed");
                     ERROR(LOAD_SECCOMP_FAILED);
                 }
             }
             // add extra rule for execve
-            if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, config->path))) {
+            if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, config->path)) != 0) {
                 LOG_FATAL("load execve rule failed");
                 ERROR(LOAD_SECCOMP_FAILED);
             }
             // only fd 0 1 2 are allowed
-            if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 1, SCMP_A0(SCMP_CMP_LE, 2))) {
+            if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 1, SCMP_A0(SCMP_CMP_LE, 2)) != 0) {
                 LOG_FATAL("load dup2 rule failed");
                 ERROR(LOAD_SECCOMP_FAILED);
             }
-            if (seccomp_load(ctx)) {
+            if (seccomp_load(ctx) != 0) {
                 LOG_FATAL("seccomp load failed");
                 ERROR(LOAD_SECCOMP_FAILED);
             }
