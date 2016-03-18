@@ -45,9 +45,9 @@ class JudgerTest(TestCase):
             self.assertEqual(result["signal"], run_result["signal"])
             self.assertEqual(open(os.path.join(test_dir, "out")).read(),
                              open(os.path.join(self.tmp_path, str(i) + ".out")).read())
-        self._args_check()
+        self._user_args_check()
 
-    def _args_check(self):
+    def _user_args_check(self):
         os.setuid(pwd.getpwnam("nobody").pw_uid)
         with self.assertRaisesRegexp(ValueError, "root user is required when using nobody"):
             judger.run(path="/bin/ls",

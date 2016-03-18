@@ -36,6 +36,7 @@ void run(struct config *config, struct result *result) {
     int signal;
     int i;
     struct passwd *passwd = getpwnam("nobody");
+    FILE *in_file, *out_file;
     int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(fstat),
                                 SCMP_SYS(mmap), SCMP_SYS(mprotect), 
                                 SCMP_SYS(munmap), SCMP_SYS(open), 
@@ -53,6 +54,25 @@ void run(struct config *config, struct result *result) {
 #endif
 
     gettimeofday(&start, NULL);
+
+    if(config->max_memory < 1) {
+        LOG_FATAL("memory can not be less than 1");
+        result->flag = SYSTEM_ERROR;
+        return;
+    }
+    if(config->max_cpu_time < 1) {
+        LOG_FATAL("cpu time can not be less than 1");
+        result->flag = SYSTEM_ERROR;
+        return;
+    }
+
+    in_file = fopen(config->in_file, "r");
+    out_file = fopen(config->out_file, "w");
+    if(in_file == NULL || out_file == NULL) {
+        LOG_FATAL("failed to open in/out redirect file");
+        result->flag = SYSTEM_ERROR;
+        return;
+    }
 
     memory_limit.rlim_cur = memory_limit.rlim_max = (rlim_t) (config->max_memory) * 2;
 
@@ -84,14 +104,13 @@ void run(struct config *config, struct result *result) {
         if(result->cpu_time == 0) {
             result->cpu_time = 1;
         }
-        result->memory = resource_usage.ru_maxrss;
 
         // osx: ru_maxrss the maximum resident set size utilized (in bytes).
         // linux: ru_maxrss (since Linux 2.6.32)This  is  the  maximum  resident set size used (in kilobytes).
         // For RUSAGE_CHILDREN, this is the resident set size of the largest child,
         // not the maximum resident set size of the processtree.
+        result->memory = resource_usage.ru_maxrss * 1024;
 
-        result->memory = result->memory * 1024;
         result->signal = 0;
         result->flag = SUCCESS;
 
@@ -154,12 +173,12 @@ void run(struct config *config, struct result *result) {
         // read stdin from in file
         // On success, these system calls return the new descriptor. 
         // On error, -1 is returned, and errno is set appropriately.
-        if (dup2(fileno(fopen(config->in_file, "r")), 0) == -1) {
+        if (dup2(fileno(in_file), 0) == -1) {
             LOG_FATAL("dup2 stdin failed, errno: %d", errno);
             ERROR(DUP2_FAILED);
         }
         // write stdout to out file
-        if (dup2(fileno(fopen(config->out_file, "w")), 1) == -1) {
+        if (dup2(fileno(out_file), 1) == -1) {
             LOG_FATAL("dup2 stdout failed, errno: %d", errno);
             ERROR(DUP2_FAILED);
         }
@@ -169,22 +188,22 @@ void run(struct config *config, struct result *result) {
             ERROR(DUP2_FAILED);
         }
 
-        if (config->use_nobody) {
+        if (config->use_nobody != 0) {
             if(passwd == NULL) {
                 LOG_FATAL("get nobody user info failed, errno: %d", errno);
                 ERROR(SET_UID_FAILED);
             }
-            if (setgid(65534) == -1) {
+            if (setgid(passwd->pw_gid) == -1) {
                 LOG_FATAL("setgid failed, errno: %d", errno);
                 ERROR(SET_GID_FAILED);
             }
-            if (setuid(65534) == -1) {
+            if (setuid(passwd->pw_uid) == -1) {
                 LOG_FATAL("setuid failed, errno: %d", errno);
                 ERROR(SET_UID_FAILED);
             }
         }
 
-        if (config->use_sandbox) {
+        if (config->use_sandbox != 0) {
             // load seccomp rules
             ctx = seccomp_init(SCMP_ACT_KILL);
             if (!ctx) {
