@@ -48,7 +48,9 @@ class JudgerTest(TestCase):
     def test_args_check(self):
         os.setuid(pwd.getpwnam("nobody").pw_uid)
         with self.assertRaisesRegexp(ValueError, "root user is required when using nobody"):
-            judger.run(path="/bin/ls", in_file="1/in", out_file="/dev/null", max_cpu_time=2000, max_memory=200000000,
+            judger.run(path="/bin/ls",
+                       in_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "1/in"),
+                       out_file="/dev/null", max_cpu_time=2000, max_memory=200000000,
                        env=["aaa=123"], use_sandbox=True, use_nobody=True)
 
 
