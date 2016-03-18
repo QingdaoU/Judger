@@ -21,11 +21,11 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     if (config.max_cpu_time <= 1) {
-        PyErr_SetString(PyExc_ValueError, "Max cpu time can not less than 1 ms");
+        PyErr_SetString(PyExc_ValueError, "max_cpu_time must > 1 ms");
         return NULL;
     }
     if (config.max_memory < 16 * 1024 * 1024) {
-        PyErr_SetString(PyExc_ValueError, "Max memory can not be less than 16M");
+        PyErr_SetString(PyExc_ValueError, "max_memory must > 16M");
         return NULL;
     }
     if (access(config.path, F_OK) == -1) {
@@ -33,7 +33,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         return NULL;
     }
     if (access(config.in_file, F_OK) == -1) {
-        PyErr_SetString(PyExc_ValueError, "Input file does not exist");
+        PyErr_SetString(PyExc_ValueError, "in_file does not exist");
         return NULL;
     }
     config.args[count++] = config.path;
@@ -50,13 +50,13 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
                 break;
             }
             if (!PyString_Check(next) && !PyUnicode_Check(next)) {
-                PyErr_SetString(PyExc_ValueError, "arg must be string");
+                PyErr_SetString(PyExc_ValueError, "arg in args must be a string");
                 return NULL;
             }
             config.args[count] = PyString_AsString(next);
             count++;
             if(count > 95) {
-                PyErr_SetString(PyExc_ValueError, "max number of args is 95");
+                PyErr_SetString(PyExc_ValueError, "Number of args must < 95");
                 return NULL;
             }
         }
@@ -76,13 +76,13 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
                 break;
             }
             if (!PyString_Check(next) && !PyUnicode_Check(next)) {
-                PyErr_SetString(PyExc_ValueError, "env must be string");
+                PyErr_SetString(PyExc_ValueError, "env item must be a string");
                 return NULL;
             }
             config.env[count] = PyString_AsString(next);
             count++;
             if(count > 95) {
-                PyErr_SetString(PyExc_ValueError, "max number of env is 95");
+                PyErr_SetString(PyExc_ValueError, "Number of env must < 95");
                 return NULL;
             }
         }
@@ -91,7 +91,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
 
     if (use_sandbox != NULL) {
         if (!PyBool_Check(use_sandbox)) {
-            PyErr_SetString(PyExc_ValueError, "use sandbox must ba a bool");
+            PyErr_SetString(PyExc_ValueError, "use_sandbox must ba a bool");
             return NULL;
         }
         config.use_sandbox = PyObject_IsTrue(use_sandbox);
@@ -102,7 +102,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
 
     if (use_nobody != NULL) {
         if (!PyBool_Check(use_nobody)) {
-            PyErr_SetString(PyExc_ValueError, "use nobody must be a bool");
+            PyErr_SetString(PyExc_ValueError, "use_nobody must be a bool");
             return NULL;
         }
         config.use_nobody = PyObject_IsTrue(use_nobody);
@@ -112,7 +112,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     }
 
     if(config.use_nobody && getuid() != 0) {
-        PyErr_SetString(PyExc_ValueError, "root user is required when using nobody");
+        PyErr_SetString(PyExc_ValueError, "Root user is required when use_nobody=True");
         return NULL;
     }
 
