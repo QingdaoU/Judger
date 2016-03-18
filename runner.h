@@ -2,9 +2,6 @@
 #define JUDGER_RUNNER_H
 #endif
 
-#include <pwd.h>
-#include <sys/types.h>
-
 #define SUCCESS 0
 
 #define FORK_FAILED 1
@@ -24,10 +21,7 @@
 #define RUNTIME_ERROR 4
 #define SYSTEM_ERROR 5
 
-#define ERROR(code) raise(SIGUSR1)
-
-#define NOBODY_UID (getpwnam("nobody")->pw_uid)
-#define NOBODY_GID (getpwnam("nobody")->pw_gid)
+#define ERROR(code) LOG_FATAL("judger return error code: %d", code);raise(SIGUSR1)
 
 
 struct result {

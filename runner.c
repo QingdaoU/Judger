@@ -5,6 +5,7 @@
 #include <seccomp.h>
 #include <signal.h>
 #include <errno.h>
+#include <pwd.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
@@ -34,6 +35,7 @@ void run(struct config *config, struct result *result) {
     struct rlimit memory_limit;
     int signal;
     int i;
+    struct passwd *passwd = getpwnam("nobody");
     int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(fstat),
                                 SCMP_SYS(mmap), SCMP_SYS(mprotect), 
                                 SCMP_SYS(munmap), SCMP_SYS(open), 
@@ -168,11 +170,15 @@ void run(struct config *config, struct result *result) {
         }
 
         if (config->use_nobody) {
-            if (setgid(NOBODY_GID) == -1) {
+            if(passwd == NULL) {
+                LOG_FATAL("get nobody user info failed, errno: %d", errno);
+                ERROR(SET_UID_FAILED);
+            }
+            if (setgid(65534) == -1) {
                 LOG_FATAL("setgid failed, errno: %d", errno);
                 ERROR(SET_GID_FAILED);
             }
-            if (setuid(NOBODY_UID) == -1) {
+            if (setuid(65534) == -1) {
                 LOG_FATAL("setuid failed, errno: %d", errno);
                 ERROR(SET_UID_FAILED);
             }

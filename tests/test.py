@@ -40,16 +40,18 @@ class JudgerTest(TestCase):
                                     out_file=os.path.join(self.tmp_path, str(i) + ".out"),
                                     **config)
             result = json.loads(open(os.path.join(test_dir, "result")).read())
+            print run_result
             self.assertEqual(result["flag"], run_result["flag"])
             self.assertEqual(result["signal"], run_result["signal"])
             self.assertEqual(open(os.path.join(test_dir, "out")).read(),
                              open(os.path.join(self.tmp_path, str(i) + ".out")).read())
+        self._args_check()
 
-    def test_args_check(self):
+    def _args_check(self):
         os.setuid(pwd.getpwnam("nobody").pw_uid)
         with self.assertRaisesRegexp(ValueError, "root user is required when using nobody"):
             judger.run(path="/bin/ls",
-                       in_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "1/in"),
+                       in_file=os.path.join(os.path.dirname(os.path.abspath(__file__)), "/dev/null"),
                        out_file="/dev/null", max_cpu_time=2000, max_memory=200000000,
                        env=["aaa=123"], use_sandbox=True, use_nobody=True)
 
