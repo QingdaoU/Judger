@@ -36,7 +36,7 @@ struct result {
 
 struct config {
     int max_cpu_time;
-    int max_memory;
+    long max_memory;
     char *path;
     char *in_file;
     char *out_file;

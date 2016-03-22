@@ -14,7 +14,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
                                   "max_memory", "args", "env", "use_sandbox", "use_nobody", NULL};
 
     config.path = config.in_file = config.out_file = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sssii|OOOO", kwargs_list, &(config.path), &(config.in_file),
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sssil|OOOO", kwargs_list, &(config.path), &(config.in_file),
                                      &(config.out_file), &(config.max_cpu_time), &(config.max_memory),
                                      &args_list, &env_list, &use_sandbox, &use_nobody)) {
         PyErr_SetString(PyExc_ValueError, "Invalid args and kwargs");
