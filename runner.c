@@ -124,7 +124,7 @@ void run(struct config *config, struct result *result) {
                 result->flag = CPU_TIME_LIMIT_EXCEEDED;
             }
             else if (signal == SIGSEGV) {
-                if (result->memory > config->max_memory) {
+                if (config->max_memory != MEMORY_UNLIMITED && result->memory > config->max_memory) {
                     result->flag = MEMORY_LIMIT_EXCEEDED;
                 }
                 else {
@@ -140,7 +140,7 @@ void run(struct config *config, struct result *result) {
             }
         }
         else {
-            if (result->memory > config->max_memory) {
+            if (config->max_memory != MEMORY_UNLIMITED && result->memory > config->max_memory) {
                 result->flag = MEMORY_LIMIT_EXCEEDED;
             }
             if (WEXITSTATUS(status) != 0) {
