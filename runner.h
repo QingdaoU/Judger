@@ -2,6 +2,11 @@
 #define JUDGER_RUNNER_H
 #endif
 
+
+#define CPU_TIME_UNLIMITED -1
+#define MEMORY_UNLIMITED -1
+
+
 #define SUCCESS 0
 
 #define FORK_FAILED 1
@@ -15,11 +20,13 @@
 #define SET_UID_FAILED 9
 #define SET_GID_FAILED 10
 
+
 #define CPU_TIME_LIMIT_EXCEEDED 1
 #define REAL_TIME_LIMIT_EXCEEDED 2
 #define MEMORY_LIMIT_EXCEEDED 3
 #define RUNTIME_ERROR 4
 #define SYSTEM_ERROR 5
+
 
 #define ERROR(code) LOG_FATAL("judger return error code: %d", code);raise(SIGUSR1)
 

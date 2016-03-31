@@ -54,16 +54,29 @@ class JudgerTest(TestCase):
         self._judger_user_args_check()
 
     def _judger_cpu_time_args_check(self):
-        with self.assertRaisesRegexp(ValueError, "max_cpu_time must > 1 ms"):
+        with self.assertRaisesRegexp(ValueError, "max_cpu_time must > 1 ms or unlimited"):
             judger.run(path="/bin/true", in_file="/dev/null",
-                       out_file="/dev/null", max_cpu_time=-1, max_memory=200000000,
+                       out_file="/dev/null", max_cpu_time=0, max_memory=200000000,
                        env=["aaa=123"], use_sandbox=False, use_nobody=False)
+        try: 
+            judger.run(path="/bin/true", in_file="/dev/null",
+                       out_file="/dev/null", max_cpu_time=judger.CPU_TIME_UNLIMITED, max_memory=200000000,
+                       env=["aaa=123"], use_sandbox=False, use_nobody=False)
+        except Exception as e:
+            self.fail(e.message)
 
     def _judger_memory_args_check(self):
-        with self.assertRaisesRegexp(ValueError, "max_memory must > 16M"):
+        with self.assertRaisesRegexp(ValueError, "max_memory must > 16M or unlimited"):
             judger.run(path="/bin/true", in_file="/dev/null",
                        out_file="/dev/null", max_cpu_time=1000, max_memory=100,
                        env=["aaa=123"], use_sandbox=True, use_nobody=True)
+        try:
+            judger.run(path="/bin/true", in_file="/dev/null",
+                       out_file="/dev/null", max_cpu_time=1000, max_memory=judger.MEMORY_UNLIMITED,
+                       env=["aaa=123"], use_sandbox=True, use_nobody=True)
+        except Exception as e:
+            self.fail(e.message)
+
 
     def _judger_exec_file_args_check(self):
         with self.assertRaisesRegexp(ValueError, "Exec file does not exist"):

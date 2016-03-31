@@ -20,12 +20,12 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         PyErr_SetString(PyExc_ValueError, "Invalid args and kwargs");
         return NULL;
     }
-    if (config.max_cpu_time <= 1) {
-        PyErr_SetString(PyExc_ValueError, "max_cpu_time must > 1 ms");
+    if (config.max_cpu_time < 1 && config.max_cpu_time != CPU_TIME_UNLIMITED) {
+        PyErr_SetString(PyExc_ValueError, "max_cpu_time must > 1 ms or unlimited");
         return NULL;
     }
-    if (config.max_memory < 16 * 1024 * 1024) {
-        PyErr_SetString(PyExc_ValueError, "max_memory must > 16M");
+    if (config.max_memory < 16 * 1024 * 1024 && config.max_memory != MEMORY_UNLIMITED) {
+        PyErr_SetString(PyExc_ValueError, "max_memory must > 16M or unlimited");
         return NULL;
     }
     if (access(config.path, F_OK) == -1) {
@@ -131,5 +131,7 @@ static PyMethodDef judger_methods[] = {
 
 
 PyMODINIT_FUNC initjudger(void) {
-    Py_InitModule3("judger", judger_methods, NULL);
+    PyObject *module = Py_InitModule3("judger", judger_methods, NULL);
+    PyModule_AddIntConstant(module, "CPU_TIME_UNLIMITED", CPU_TIME_UNLIMITED);
+    PyModule_AddIntConstant(module, "MEMORY_UNLIMITED", MEMORY_UNLIMITED);
 }

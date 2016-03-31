@@ -55,13 +55,13 @@ void run(struct config *config, struct result *result) {
 
     gettimeofday(&start, NULL);
 
-    if(config->max_memory < 1) {
-        LOG_FATAL("memory can not be less than 1");
+    if(config->max_memory < 1 && config->max_memory != MEMORY_UNLIMITED) {
+        LOG_FATAL("max_memory must > 1 or unlimited");
         result->flag = SYSTEM_ERROR;
         return;
     }
-    if(config->max_cpu_time < 1) {
-        LOG_FATAL("cpu time can not be less than 1");
+    if(config->max_cpu_time < 1 && config->max_cpu_time != CPU_TIME_UNLIMITED) {
+        LOG_FATAL("max_cpu_time must > 1 or unlimited");
         result->flag = SYSTEM_ERROR;
         return;
     }
@@ -74,7 +74,6 @@ void run(struct config *config, struct result *result) {
         return;
     }
 
-    memory_limit.rlim_cur = memory_limit.rlim_max = (rlim_t) (config->max_memory) * 2;
 
     pid_t pid = fork();
 
@@ -155,19 +154,24 @@ void run(struct config *config, struct result *result) {
         // child process
         // On success, these system calls return 0.
         // On error, -1 is returned, and errno is set appropriately.
-        if (setrlimit(RLIMIT_AS, &memory_limit) == -1) {
-            LOG_FATAL("setrlimit failed, errno: %d", errno);
-            ERROR(SETRLIMIT_FAILED);
+        if (config->max_memory != MEMORY_UNLIMITED) {
+            memory_limit.rlim_cur = memory_limit.rlim_max = (rlim_t) (config->max_memory) * 2;
+            if (setrlimit(RLIMIT_AS, &memory_limit) == -1) {
+                LOG_FATAL("setrlimit failed, errno: %d", errno);
+                ERROR(SETRLIMIT_FAILED);
+            }
         }
-        // cpu time
-        if (set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1) != SUCCESS) {
-            LOG_FATAL("set cpu time timer failed");
-            ERROR(SETITIMER_FAILED);
-        }
-        // real time * 3
-        if (set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0) != SUCCESS) {
-            LOG_FATAL("set real time timer failed");
-            ERROR(SETITIMER_FAILED);
+        if (config->max_cpu_time != CPU_TIME_UNLIMITED) {
+            // cpu time
+            if (set_timer(config->max_cpu_time / 1000, config->max_cpu_time % 1000, 1) != SUCCESS) {
+                LOG_FATAL("set cpu time timer failed");
+                ERROR(SETITIMER_FAILED);
+            }
+            // real time * 3
+            if (set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0) != SUCCESS) {
+                LOG_FATAL("set real time timer failed");
+                ERROR(SETITIMER_FAILED);
+            }
         }
 
         // read stdin from in file
