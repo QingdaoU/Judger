@@ -1,7 +1,5 @@
 #ifndef JUDGER_RUNNER_H
 #define JUDGER_RUNNER_H
-#endif
-
 
 #define CPU_TIME_UNLIMITED -1
 #define MEMORY_UNLIMITED -1
@@ -56,3 +54,4 @@ struct config {
 
 void run(struct config *, struct result *);
 
+#endif
