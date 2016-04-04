@@ -7,3 +7,4 @@ CMakeLists.txt
 main
 demo
 .DS_Store
+judger.log
