@@ -23,8 +23,9 @@ cd demo && sudo python demo.py
 ptrace在很多OJ上都有应用，但是不可否认的是ptrace存在一个重大缺点：严重影响进程运行的性能，因为每次系统调用就要进行两次上下文切换，从子进程到父进程，然后父进程到子进程。OJ上题目很多都需要大量的输入和输出，会产生大量的系统调用，导致代码运行时间加长。
 
 ##注意
+ - `runner.c`里面硬编码了系统调用白名单，在Ubuntu 14.04 64位系统上测试通过。如果在您的系统上正常程序出现了`Runtime Error`可能是部分系统调用不一致导致的。可以提出issue，一起解决，请务必提供系统版本和`strace ./FILE_NAME`的结果。目前已知32位系统肯定会出现非白名单系统调用，但是因为32位系统无法使用docker，一般出现在本地测试环境中。
  - 如果使用了 `use_nobody = True` 则需要 `root` 权限启动。
- - Python api 请不要使用中文 Unicode。
+ - Python api 请只使用str。
  
 ##感谢
  - https://github.com/lodevil/Lo-runner
