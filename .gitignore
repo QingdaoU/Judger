@@ -8,3 +8,4 @@ main
 demo
 .DS_Store
 judger.log
+*.swp

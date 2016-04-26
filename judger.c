@@ -10,15 +10,15 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     struct config config;
     struct result result = {0, 0, 0, 0, 0, 0};
     PyObject *args_list = NULL, *env_list = NULL, *use_sandbox = NULL, *use_nobody = NULL,
-            *next = NULL, *args_iter = NULL, *env_iter = NULL;
+            *next = NULL, *args_iter = NULL, *env_iter = NULL, *log_path = NULL;
     int count = 0;
     static char *kwargs_list[] = {"path", "in_file", "out_file", "max_cpu_time",
-                                  "max_memory", "args", "env", "use_sandbox", "use_nobody", NULL};
+                                  "max_memory", "args", "env", "use_sandbox", "use_nobody", "log_path", NULL};
 
     config.path = config.in_file = config.out_file = NULL;
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sssil|OOOO", kwargs_list, &(config.path), &(config.in_file),
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sssil|OOOOO", kwargs_list, &(config.path), &(config.in_file),
                                      &(config.out_file), &(config.max_cpu_time), &(config.max_memory),
-                                     &args_list, &env_list, &use_sandbox, &use_nobody)) {
+                                     &args_list, &env_list, &use_sandbox, &use_nobody, &log_path)) {
         RaiseValueError("Invalid args and kwargs");
     }
     if (config.max_cpu_time < 1 && config.max_cpu_time != CPU_TIME_UNLIMITED) {
@@ -98,6 +98,16 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     }
     else {
         config.use_nobody = 1;
+    }
+
+    if (log_path != NULL) {
+        if (!PyString_Check(log_path)) {
+            RaiseValueError("log path must be a string");
+        }
+        config.log_path = PyString_AsString(log_path);
+    }
+    else {
+        config.log_path = "judger.log";
     }
 
     if(config.use_nobody && getuid() != 0) {
