@@ -13,8 +13,8 @@ def _compile():
                       max_memory=judger.MEMORY_UNLIMITED,
                       args=[os.path.join(base_path, "demo.c"), "-o", os.path.join(base_path, "demo")],
                       env=["PATH=" + os.environ["PATH"]],
+                      log_path="compile.log",
                       use_sandbox=False,
-                      log_path="test.log",
                       use_nobody=False)
 
 
@@ -28,9 +28,10 @@ def run(use_sandbox, use_nobody):
                       max_cpu_time=2000,
                       # Byte
                       max_memory=200000000,
-                      # args and env are optional
+                      # args env and log_path are optional
                       args=["1", "2", "####"],
                       env=["aaa=123"],
+                      log_path="run.log",
                       # default is True
                       use_sandbox=use_sandbox,
                       use_nobody=use_nobody)

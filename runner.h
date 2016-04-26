@@ -26,7 +26,7 @@
 #define SYSTEM_ERROR 5
 
 
-#define ERROR(code) LOG_FATAL("judger return error code: %d", code);raise(SIGUSR1)
+#define ERROR(log_fp, code) LOG_FATAL(log_fp, "judger return error code: %d", code);raise(SIGUSR1)
 
 
 struct result {
