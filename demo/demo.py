@@ -13,7 +13,8 @@ def _compile():
                       max_memory=judger.MEMORY_UNLIMITED,
                       args=[os.path.join(base_path, "demo.c"), "-o", os.path.join(base_path, "demo")],
                       env=["PATH=" + os.environ["PATH"]],
-                      use_sandbox=False, 
+                      use_sandbox=False,
+                      log_path="test.log",
                       use_nobody=False)
 
 

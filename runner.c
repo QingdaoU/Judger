@@ -46,8 +46,8 @@ void run(struct config *config, struct result *result) {
 
     int syscalls_whitelist_length = sizeof(syscalls_whitelist) / sizeof(int);
     scmp_filter_ctx ctx = NULL;
-
-    log_open("judger.log");
+    
+    log_open(config->log_path);
 
 #ifdef __APPLE__
     #warning "setrlimit with RLIMIT_AS to limit memory usage will not work on OSX"
