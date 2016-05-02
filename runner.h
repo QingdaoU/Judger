@@ -41,15 +41,18 @@ struct result {
 
 struct config {
     int max_cpu_time;
+    int max_real_time;
     long max_memory;
     char *path;
     char *in_file;
     char *out_file;
+    char *err_file;
     char *args[100];
     char *env[100];
     int use_sandbox;
-    int use_nobody;
     char *log_path;
+    uid_t uid;
+    gid_t gid;
 };
 
 

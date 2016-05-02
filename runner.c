@@ -34,9 +34,7 @@ void run(struct config *config, struct result *result) {
     struct rlimit memory_limit, cpu_time_rlimit;
     int signal;
     int i;
-    FILE* log_fp;
-    struct passwd *passwd = getpwnam("nobody");
-    FILE *in_file, *out_file;
+    FILE *log_fp = NULL, *in_file = NULL, *out_file = NULL, *err_file = NULL;
     int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(fstat),
                                 SCMP_SYS(mmap), SCMP_SYS(mprotect), 
                                 SCMP_SYS(munmap), SCMP_SYS(open), 
@@ -71,16 +69,6 @@ void run(struct config *config, struct result *result) {
         log_close(log_fp);
         return;
     }
-
-    in_file = fopen(config->in_file, "r");
-    out_file = fopen(config->out_file, "w");
-    if(in_file == NULL || out_file == NULL) {
-        LOG_FATAL(log_fp, "failed to open in/out redirect file");
-        result->flag = SYSTEM_ERROR;
-        log_close(log_fp);
-        return;
-    }
-
 
     pid_t pid = fork();
 
@@ -176,8 +164,8 @@ void run(struct config *config, struct result *result) {
                 LOG_FATAL(log_fp, "set cpu time timer failed");
                 ERROR(log_fp, SETITIMER_FAILED);
             }
-            // real time * 3
-            if (set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0) != SUCCESS) {
+            // real time
+            if (set_timer(config->max_real_time / 1000, config->max_real_time % 1000, 0) != SUCCESS) {
                 LOG_FATAL(log_fp, "set real time timer failed");
                 ERROR(log_fp, SETITIMER_FAILED);
             }
@@ -194,34 +182,51 @@ void run(struct config *config, struct result *result) {
         // read stdin from in file
         // On success, these system calls return the new descriptor. 
         // On error, -1 is returned, and errno is set appropriately.
-        if (dup2(fileno(in_file), 0) == -1) {
-            LOG_FATAL(log_fp, "dup2 stdin failed, errno: %d", errno);
-            ERROR(log_fp, DUP2_FAILED);
+        if (config->in_file != NULL) {
+            if ((in_file = fopen(config->in_file, "r")) == NULL) {
+                LOG_FATAL(log_fp, "failed to open stdin redirect file");
+                ERROR(log_fp, DUP2_FAILED);
+            }
+            if (dup2(fileno(in_file), fileno(stdin)) == -1) {
+                LOG_FATAL(log_fp, "dup2 stdin failed, errno: %d", errno);
+                ERROR(log_fp, DUP2_FAILED);
+            }
         }
         // write stdout to out file
-        if (dup2(fileno(out_file), 1) == -1) {
-            LOG_FATAL(log_fp, "dup2 stdout failed, errno: %d", errno);
-            ERROR(log_fp, DUP2_FAILED);
+        if (config->out_file != NULL) {
+            if ((out_file = fopen(config->out_file, "w")) == NULL) {
+                LOG_FATAL(log_fp, "failed to open stdout redirect file");
+                ERROR(log_fp, DUP2_FAILED);
+            }
+            if (dup2(fileno(out_file), fileno(stdout)) == -1) {
+                LOG_FATAL(log_fp, "dup2 stdout failed, errno: %d", errno);
+                ERROR(log_fp, DUP2_FAILED);
+            }
         }
-        // redirect stderr to stdout
-        if (dup2(fileno(stdout), fileno(stderr)) == -1) {
-            LOG_FATAL(log_fp, "dup2 stderr failed, errno: %d", errno);
-            ERROR(log_fp, DUP2_FAILED);
+        // write stderr to err file
+        if (config->err_file != NULL) {
+            // if err_file and out_file are the same path, we use out_file pointer as err_file pointer, to avoid conflict
+            if (strcmp(config->out_file, config->err_file) == 0) {
+                err_file = out_file;
+            }
+            else {
+                if ((err_file = fopen(config->err_file, "w")) == NULL) {
+                    LOG_FATAL(log_fp, "failed to open stderr redirect file");
+                    ERROR(log_fp, DUP2_FAILED);
+                }
+            }
+            if (dup2(fileno(err_file), fileno(stderr)) == -1) {
+                LOG_FATAL(log_fp, "dup2 stdout failed, errno: %d", errno);
+                ERROR(log_fp, DUP2_FAILED);
+            }
         }
-
-        if (config->use_nobody != 0) {
-            if(passwd == NULL) {
-                LOG_FATAL(log_fp, "get nobody user info failed, errno: %d", errno);
-                ERROR(log_fp, SET_UID_FAILED);
-            }
-            if (setgid(passwd->pw_gid) == -1) {
-                LOG_FATAL(log_fp, "setgid failed, errno: %d", errno);
-                ERROR(log_fp, SET_GID_FAILED);
-            }
-            if (setuid(passwd->pw_uid) == -1) {
-                LOG_FATAL(log_fp, "setuid failed, errno: %d", errno);
-                ERROR(log_fp, SET_UID_FAILED);
-            }
+        if (config->gid != -1 && setgid(config->gid) == -1) {
+            LOG_FATAL(log_fp, "setgid failed, errno: %d", errno);
+            ERROR(log_fp, SET_GID_FAILED);
+        }
+        if (config->uid != -1 && setuid(config->uid) == -1) {
+            LOG_FATAL(log_fp, "setuid failed, errno: %d", errno);
+            ERROR(log_fp, SET_UID_FAILED);
         }
 
         if (config->use_sandbox != 0) {

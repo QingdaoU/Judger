@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <sys/types.h>
+#include <pwd.h>
 #include <python2.7/Python.h>
 #include "runner.h"
 
@@ -12,6 +13,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     PyObject *args_list = NULL, *env_list = NULL, *use_sandbox = NULL, *use_nobody = NULL,
             *next = NULL, *args_iter = NULL, *env_iter = NULL, *log_path = NULL;
     int count = 0;
+    struct passwd *passwd;
     static char *kwargs_list[] = {"path", "in_file", "out_file", "max_cpu_time",
                                   "max_memory", "args", "env", "use_sandbox", "use_nobody", "log_path", NULL};
 
@@ -24,6 +26,8 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     if (config.max_cpu_time < 1 && config.max_cpu_time != CPU_TIME_UNLIMITED) {
         RaiseValueError("max_cpu_time must > 1 ms or unlimited");
     }
+    // by default, max_real_time = max_cpu_time * 3
+    config.max_real_time = config.max_cpu_time * 3;
     if (config.max_memory < 16 * 1024 * 1024 && config.max_memory != MEMORY_UNLIMITED) {
         RaiseValueError("max_memory must > 16M or unlimited");
     }
@@ -33,6 +37,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     if (access(config.in_file, F_OK) == -1) {
         RaiseValueError("in_file does not exist");
     }
+    config.err_file = config.out_file;
     config.args[count++] = config.path;
     if (args_list != NULL) {
         if (!PyList_Check(args_list)) {
@@ -94,10 +99,15 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         if (!PyBool_Check(use_nobody)) {
             RaiseValueError("use_nobody must be a bool");
         }
-        config.use_nobody = PyObject_IsTrue(use_nobody);
+        passwd = getpwnam("nobody");
+        if(passwd == NULL) {
+            RaiseValueError("get nobody user info failed");
+        }
+        config.gid = passwd->pw_gid;
+        config.uid = passwd->pw_uid;
     }
     else {
-        config.use_nobody = 1;
+        config.uid = config.gid = -1;
     }
 
     if (log_path != NULL) {
@@ -110,12 +120,12 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         config.log_path = "judger.log";
     }
 
-    if(config.use_nobody && getuid() != 0) {
+    if((config.uid != -1 || config.gid != -1) && getuid() != 0) {
         RaiseValueError("Root user is required when use_nobody=True");
     }
 
     run(&config, &result);
-    return Py_BuildValue("{s:i, s:l, s:i, s:i, s:i, s:i}",
+    return Py_BuildValue("{s:l, s:i, s:i, s:i, s:i, s:i}",
                          "cpu_time", result.cpu_time, "memory", result.memory, "real_time", result.real_time, "signal",
                          result.signal, "flag", result.flag, "exit_status", result.exit_status);
 
@@ -123,7 +133,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
 
 
 static PyMethodDef judger_methods[] = {
-        {"run", (PyCFunction) judger_run, METH_VARARGS | METH_KEYWORDS, NULL},
+        {"run", (PyCFunction) judger_run, METH_KEYWORDS, NULL},
         {NULL, NULL, 0, NULL}
 };
 
