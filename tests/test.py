@@ -31,7 +31,7 @@ class JudgerTest(TestCase):
                 continue
             print "\n\nRunning test: ", i
             test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), str(i))
-            exe_path = os.path.join("/tmp/judger_test", str(i))
+            exe_path = os.path.join(self.tmp_path, str(i))
             config = json.loads(open(os.path.join(test_dir, "config")).read())
             self.assertEqual(self.compile_src(os.path.join(test_dir, "Main.c"), config.pop("language"), exe_path), 0)
 
@@ -51,6 +51,7 @@ class JudgerTest(TestCase):
         self._judger_in_file_args_check()
         self._judger_args_args_check()
         self._judger_env_args_check()
+        self._judger_child_process_cpu_time_check()
         self._judger_user_args_check()
 
     def _judger_cpu_time_args_check(self):
@@ -128,6 +129,22 @@ class JudgerTest(TestCase):
             judger.run(path="/bin/ls", in_file="/dev/null",
                        out_file="/dev/null", max_cpu_time=2000, max_memory=200000000,
                        env=["aaa=123"], use_sandbox=True, use_nobody=True)
+
+    # child process can not inherit timeout rules from parent process defined by setitimer, so we use setrlimit to
+    # control child process max running time
+    def _judger_child_process_cpu_time_check(self):
+        try:
+            max_cpu_time = 2000
+            result = judger.run(path=os.path.join(self.tmp_path, "17"), in_file="/dev/null",
+                                out_file="/dev/null", max_cpu_time=max_cpu_time, max_memory=200000000,
+                                env=["aaa=123"], use_sandbox=False, use_nobody=True)
+            expected_cpu_time = (max_cpu_time + 1000) / 1000 * 1000
+            if result["cpu_time"] > expected_cpu_time * 1.1:
+                self.fail("cpu time exceeded")
+            if result["real_time"] >= max_cpu_time * 3:
+                self.fail("real time exceeded")
+        except Exception as e:
+            self.fail(e.message)
 
 
 if __name__ == "__main__":

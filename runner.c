@@ -31,7 +31,7 @@ void run(struct config *config, struct result *result) {
     int status;
     struct rusage resource_usage;
     struct timeval start, end;
-    struct rlimit memory_limit;
+    struct rlimit memory_limit, cpu_time_rlimit;
     int signal;
     int i;
     FILE* log_fp;
@@ -166,7 +166,7 @@ void run(struct config *config, struct result *result) {
         if (config->max_memory != MEMORY_UNLIMITED) {
             memory_limit.rlim_cur = memory_limit.rlim_max = (rlim_t) (config->max_memory) * 2;
             if (setrlimit(RLIMIT_AS, &memory_limit) == -1) {
-                LOG_FATAL(log_fp, "setrlimit failed, errno: %d", errno);
+                LOG_FATAL(log_fp, "setrlimit memory failed, errno: %d", errno);
                 ERROR(log_fp, SETRLIMIT_FAILED);
             }
         }
@@ -180,6 +180,14 @@ void run(struct config *config, struct result *result) {
             if (set_timer(config->max_cpu_time / 1000 * 3, (config->max_cpu_time % 1000) * 3 % 1000, 0) != SUCCESS) {
                 LOG_FATAL(log_fp, "set real time timer failed");
                 ERROR(log_fp, SETITIMER_FAILED);
+            }
+
+            // child process can not inherit timeout rules from parent process defined by setitimer, so we use setrlimit to
+            // control child process max running time
+            cpu_time_rlimit.rlim_cur = cpu_time_rlimit.rlim_max = (config->max_cpu_time + 1000) / 1000;
+            if (setrlimit(RLIMIT_CPU, &cpu_time_rlimit) == -1) {
+                LOG_FATAL(log_fp, "setrlimit cpu time failed, errno: %d", errno);
+                ERROR(log_fp, SETRLIMIT_FAILED);
             }
         }
 
