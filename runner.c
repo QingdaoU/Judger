@@ -2,7 +2,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#ifndef __APPLE__
 #include <seccomp.h>
+#else
+#warning "###### This judger can not work under OSX, installation is only for dev dependencies! #####"
+#endif
 #include <signal.h>
 #include <errno.h>
 #include <pwd.h>
@@ -33,27 +37,24 @@ void run(struct config *config, struct result *result) {
     struct timeval start, end;
     struct rlimit memory_limit, cpu_time_rlimit;
     int signal;
-    int i;
     FILE *log_fp = NULL, *in_file = NULL, *out_file = NULL, *err_file = NULL;
+    #ifndef __APPLE__
+    int i;
     int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(fstat),
                                 SCMP_SYS(mmap), SCMP_SYS(mprotect), 
                                 SCMP_SYS(munmap), SCMP_SYS(open), 
                                 SCMP_SYS(arch_prctl), SCMP_SYS(brk), 
                                 SCMP_SYS(access), SCMP_SYS(exit_group), 
                                 SCMP_SYS(close)};
-
     int syscalls_whitelist_length = sizeof(syscalls_whitelist) / sizeof(int);
     scmp_filter_ctx ctx = NULL;
+    #endif
     
     log_fp = log_open(config->log_path);
     if(log_fp == NULL){
         result->flag = SYSTEM_ERROR;
         return;
     }
-
-#ifdef __APPLE__
-    #warning "setrlimit with RLIMIT_AS to limit memory usage will not work on OSX"
-#endif
 
     gettimeofday(&start, NULL);
 
@@ -228,7 +229,7 @@ void run(struct config *config, struct result *result) {
             LOG_FATAL(log_fp, "setuid failed, errno: %d", errno);
             ERROR(log_fp, SET_UID_FAILED);
         }
-
+#ifndef __APPLE__
         if (config->use_sandbox != 0) {
             // load seccomp rules
             ctx = seccomp_init(SCMP_ACT_KILL);
@@ -258,6 +259,7 @@ void run(struct config *config, struct result *result) {
             }
             seccomp_release(ctx);
         }
+#endif
         execve(config->path, config->args, config->env);
         LOG_FATAL(log_fp, "execve failed, errno: %d", errno);
         ERROR(log_fp, EXCEVE_FAILED);

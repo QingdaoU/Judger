@@ -7,7 +7,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
-#include <error.h>
 #include <sys/file.h>
 
 FILE* log_open(const char *);
@@ -70,7 +69,7 @@ static void log_write(int level, const char* source_filename, const int line, co
                             "%s [%s] [%s:%d]%s\n",
                             LOG_LEVEL_NOTE[level], datetime, source_filename, line, log_buffer);
     fprintf(stdout, "%s", buffer);
-    int log_fd = log_fp->_fileno;
+    int log_fd = fileno((FILE *)log_fp);
     if (flock(log_fd, LOCK_EX) == 0)
     {
         if (write(log_fd, buffer, count) < 0)
