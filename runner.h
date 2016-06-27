@@ -58,4 +58,10 @@ struct config {
 
 void run(struct config *, struct result *);
 
+
+struct clone_args {
+    struct config *config;
+    FILE *log_fp;
+};
+
 #endif
