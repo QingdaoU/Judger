@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <pwd.h>
 #include <sched.h>
+#include <grp.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
@@ -40,6 +41,7 @@ int child_process(void *clone_args){
     struct config *config = ((struct clone_args *)clone_args)->config;
     FILE *in_file = NULL, *out_file = NULL, *err_file = NULL;
     struct rlimit memory_limit, cpu_time_rlimit;
+    gid_t group_list[] = {config->gid};
 #ifndef __APPLE__
     int i;
     int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(fstat),
@@ -123,7 +125,7 @@ int child_process(void *clone_args){
             ERROR(log_fp, DUP2_FAILED);
         }
     }
-    if (config->gid != -1 && setgid(config->gid) == -1) {
+    if (config->gid != -1 && (setgid(config->gid) == -1 || setgroups(sizeof(group_list) / sizeof(gid_t), group_list) == -1)) {
         LOG_FATAL(log_fp, "setgid failed, errno: %d", errno);
         ERROR(log_fp, SET_GID_FAILED);
     }
