@@ -99,12 +99,17 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         if (!PyBool_Check(use_nobody)) {
             RaiseValueError("use_nobody must be a bool");
         }
-        passwd = getpwnam("nobody");
-        if(passwd == NULL) {
-            RaiseValueError("get nobody user info failed");
+        if (PyObject_IsTrue(use_nobody)) {
+            passwd = getpwnam("nobody");
+            if(passwd == NULL) {
+                RaiseValueError("get nobody user info failed");
+            }
+            config.gid = passwd->pw_gid;
+            config.uid = passwd->pw_uid;
         }
-        config.gid = passwd->pw_gid;
-        config.uid = passwd->pw_uid;
+        else {
+            config.uid = config.gid = -1;
+        }
     }
     else {
         config.uid = config.gid = -1;
