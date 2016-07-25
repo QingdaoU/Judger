@@ -3,7 +3,6 @@ build/
 a.out
 limit
 runner
-CMakeLists.txt
 main
 demo
 .DS_Store
