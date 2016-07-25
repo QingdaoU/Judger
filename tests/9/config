@@ -1,1 +1,0 @@
-{"language": "c", "max_cpu_time": 2000, "max_memory": 200000000, "env": ["hello=world", "123=456"]}
