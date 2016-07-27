@@ -213,7 +213,7 @@ void run(struct config *config, struct result *result) {
     pid = clone(child_process, stack + STACK_SIZE, SIGCHLD, (void *)(&clone_args));
 
     if (pid < 0) {
-        LOG_FATAL(log_fp, "fork failed");
+        LOG_FATAL(log_fp, "fork failed, errno: %d", errno);
         result->flag = SYSTEM_ERROR;
         log_close(log_fp);
         return;
