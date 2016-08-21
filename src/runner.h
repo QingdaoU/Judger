@@ -13,7 +13,7 @@
 #define ERROR_EXIT(error_code)\
         {\
             LOG_ERROR(error_code);  \
-            result->error = error_code; \
+            _result->error = error_code; \
             log_close(log_fp);  \
             return; \
         }
@@ -76,5 +76,5 @@ typedef struct child_args {
     runner_config *config;
 } child_args;
 
-void run(runner_config *config, runner_result *result);
+void run(struct config *, struct result *);
 #endif //JUDGER_RUNNER_H

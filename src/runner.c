@@ -22,19 +22,19 @@
 
 #define STACK_SIZE (2 * 1024 * 1024)
 
-void init_result(runner_result *result) {
-    result->error = SUCCESS;
-    result->cpu_time = result->real_time = result->signal = result->exit_code = 0;
-    result->memory = 0;
+void init_result(struct result *_result) {
+    _result->error = SUCCESS;
+    _result->cpu_time = _result->real_time = _result->signal = _result->exit_code = 0;
+    _result->memory = 0;
 }
 
 
-void run(runner_config *config, runner_result *result) {
+void run(struct config *_config, struct result *_result) {
     // init log fp
-    FILE *log_fp = log_open(config->log_path);
+    FILE *log_fp = log_open(_config->log_path);
 
     // init result
-    init_result(result);
+    init_result(_result);
 
     // check whether current user is root
     uid_t uid = getuid();
@@ -43,11 +43,11 @@ void run(runner_config *config, runner_result *result) {
     }
 
     // check args
-    if ((config->max_cpu_time < 1 && config->max_cpu_time != UNLIMITED) ||
-        (config->max_real_time < 1 && config->max_real_time != UNLIMITED) ||
-        (config->max_memory < 1 && config->max_memory != UNLIMITED) ||
-        (config->max_process_number < 1 && config->max_process_number != UNLIMITED) ||
-        (config->max_output_size < 1 && config->max_output_size != UNLIMITED)) {
+    if ((_config->max_cpu_time < 1 && _config->max_cpu_time != UNLIMITED) ||
+        (_config->max_real_time < 1 && _config->max_real_time != UNLIMITED) ||
+        (_config->max_memory < 1 && _config->max_memory != UNLIMITED) ||
+        (_config->max_process_number < 1 && _config->max_process_number != UNLIMITED) ||
+        (_config->max_output_size < 1 && _config->max_output_size != UNLIMITED)) {
         ERROR_EXIT(INVALID_CONFIG);
     }
 
@@ -64,7 +64,7 @@ void run(runner_config *config, runner_result *result) {
 
     // clone
     child_args args;
-    args.config = config;
+    args.config = _config;
     args.log_fp = log_fp;
 
     pid_t child_pid = clone(child_process, stack + STACK_SIZE, SIGCHLD, (void *) (&args));
@@ -76,10 +76,10 @@ void run(runner_config *config, runner_result *result) {
     else {
         // create new thread to monitor process running time
         pthread_t tid = 0;
-        if (config->max_real_time != UNLIMITED) {
+        if (_config->max_real_time != UNLIMITED) {
             struct timeout_killer_args killer_args;
 
-            killer_args.timeout = config->max_real_time;
+            killer_args.timeout = _config->max_real_time;
             killer_args.pid = child_pid;
             if (pthread_create(&tid, NULL, timeout_killer, (void *) (&killer_args)) != 0) {
                 kill_pid(child_pid);
@@ -99,28 +99,28 @@ void run(runner_config *config, runner_result *result) {
         }
 
         // process exited, we may need to cancel timeout killer thread
-        if (config->max_real_time != UNLIMITED) {
+        if (_config->max_real_time != UNLIMITED) {
             if (pthread_cancel(tid) != 0) {
                 // todo logging
             };
         }
 
-        result->exit_code = WEXITSTATUS(status);
-        result->cpu_time = (int) (resource_usage.ru_utime.tv_sec * 1000 +
+        _result->exit_code = WEXITSTATUS(status);
+        _result->cpu_time = (int) (resource_usage.ru_utime.tv_sec * 1000 +
                                   resource_usage.ru_utime.tv_usec / 1000 +
                                   resource_usage.ru_stime.tv_sec * 1000 +
                                   resource_usage.ru_stime.tv_usec / 1000);
-        result->memory = resource_usage.ru_maxrss * 1024;
+        _result->memory = resource_usage.ru_maxrss * 1024;
 
         // if signaled
         if (WIFSIGNALED(status) != 0) {
             LOG_DEBUG(log_fp, "signal: %d", WTERMSIG(status));
-            result->signal = WTERMSIG(status);
+            _result->signal = WTERMSIG(status);
         }
 
         // get end time
         gettimeofday(&end, NULL);
-        result->real_time = (int) (end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
+        _result->real_time = (int) (end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
         log_close(log_fp);
     }
 }
