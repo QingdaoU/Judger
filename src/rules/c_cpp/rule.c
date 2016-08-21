@@ -24,7 +24,7 @@ int load_seccomp(void *dl_handler, struct config *_config) {
         }
     }
     // add extra rule for execve
-    if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, _config->exe_path)) != 0) {
+    if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)(_config->exe_path))) != 0) {
         return LOAD_SECCOMP_FAILED;
     }
     // only fd 0 1 2 are allowed

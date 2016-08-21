@@ -7,7 +7,7 @@ before_install:
     - sudo apt-get install libseccomp-dev cmake
 install:
     - mkdir build && cd build
-    - cmake .. && make && make install
+    - cmake .. && make && sudo make install
     - cd ../bindings/Python && python setup.py install
 script:
-    - cd tests && sudo python test.py
+    - cd ../../tests && sudo python test.py
