@@ -148,7 +148,7 @@ int child_process(void *clone_args){
             }
         }
         // add extra rule for execve
-        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, config->path)) != 0) {
+        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_EQ, (scmp_datum_t)(config->path))) != 0) {
             LOG_FATAL(log_fp, "load execve rule failed");
             ERROR(log_fp, LOAD_SECCOMP_FAILED);
         }
