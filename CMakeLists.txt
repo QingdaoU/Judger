@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 2.5)
 project(judger C)
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 
 set(BASE_CMAKE_C_FLAGS "-Wall -Werror -O3 -std=c99")
 set(CMAKE_C_FLAGS "${BASE_CMAKE_C_FLAGS}")
@@ -23,7 +22,4 @@ foreach(lang_rule_path ${RULE_SOURCE})
         target_link_libraries("rule_${lang_name}" seccomp)
 endforeach(lang_rule_path src/rules)
 
-
-# make tests
-add_executable(run_test test/main.c ${SOURCE})
-target_link_libraries(run_test pthread dl seccomp)
+install(DIRECTORY output/ DESTINATION /usr/lib/judger)

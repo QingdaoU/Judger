@@ -1,10 +1,6 @@
 .idea/
 build/
-a.out
-limit
-runner
-main
-demo
 .DS_Store
-judger.log
+*.log
 *.swp
+*.so

@@ -1,0 +1,13 @@
+language: python
+python:
+    - "2.7"
+sudo: required
+before_install:
+    - sudo apt-get -qq update
+    - sudo apt-get install libseccomp-dev cmake
+install:
+    - mkdir build && cd build
+    - cmake .. && make && make install
+    - cd ../bindings/Python && python setup.py install
+script:
+    - cd tests && sudo python test.py
