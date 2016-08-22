@@ -4,3 +4,5 @@ build/
 *.log
 *.swp
 *.so
+__pycache__
+*.pyc

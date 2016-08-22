@@ -12,7 +12,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     struct config _config;
     struct result _result = {0, 0, 0, 0, 0, 0};
 
-    PyObject *args_list = NULL, *env_list = NULL, *args_iter = NULL, *env_iter = NULL, *next = NULL;
+    PyObject *args_list = NULL, *env_list = NULL, *rule_path = NULL, *args_iter = NULL, *env_iter = NULL, *next = NULL;
 
     int count = 0;
 
@@ -22,12 +22,12 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
                                   "error_path", "args", "env", "log_path",
                                   "seccomp_rule_so_path", "uid", "gid", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iililssssOOssii", kwargs_list,
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iililssssOOsOii", kwargs_list,
                                      &(_config.max_cpu_time), &(_config.max_real_time), &(_config.max_memory),
                                      &(_config.max_process_number), &(_config.max_output_size),
                                      &(_config.exe_path), &(_config.input_path), &(_config.output_path),
                                      &(_config.error_path), &args_list, &env_list, &(_config.log_path),
-                                     &(_config.seccomp_rule_so_path), &(_config.uid), &(_config.gid))) {
+                                     &rule_path, &(_config.uid), &(_config.gid))) {
         RaiseValueError("Invalid args and kwargs");
     }
 
@@ -68,6 +68,17 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         count++;
     }
     _config.env[count] = NULL;
+    if (PyString_Check(rule_path)) {
+        _config.seccomp_rule_so_path = PyString_AsString(rule_path);
+    }
+    else {
+        if (rule_path == Py_None) {
+            _config.seccomp_rule_so_path = NULL;
+        }
+        else {
+            RaiseValueError("seccomp_rule_so_path must be string or None");
+        }
+    }
 
     void *handler = dlopen("/usr/lib/judger/lib/libjudger.so", RTLD_LAZY);
     int (*judger_run)(struct config *, struct result *);
