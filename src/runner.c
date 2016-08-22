@@ -64,7 +64,7 @@ void run(struct config *_config, struct result *_result) {
 
     // clone
     child_args args;
-    args.config = _config;
+    args._config = _config;
     args.log_fp = log_fp;
 
     pid_t child_pid = clone(child_process, stack + STACK_SIZE, SIGCHLD, (void *) (&args));

@@ -92,5 +92,6 @@ static PyMethodDef judger_methods[] = {
 
 
 PyMODINIT_FUNC init_judger(void) {
-    Py_InitModule3("_judger", judger_methods, NULL);
+    PyObject *module = Py_InitModule3("_judger", judger_methods, NULL);
+    PyModule_AddIntConstant(module, "UNLIMITED", UNLIMITED);
 }

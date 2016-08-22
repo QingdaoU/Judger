@@ -5,7 +5,6 @@
 #include <stdio.h>
 
 #define UNLIMITED -1
-#define DO_NOT_CHANGE -1
 
 
 #define LOG_ERROR(error_code) LOG_FATAL(log_fp, "Error: "#error_code);
@@ -17,6 +16,7 @@
             log_close(log_fp);  \
             return; \
         }
+
 
 enum {
     SUCCESS = 0,
@@ -30,15 +30,6 @@ enum {
     DUP2_FAILED = -8,
     SETUID_FAILED = -9,
     EXECVE_FAILED = -10
-};
-
-
-enum {
-    CPU_TIME_LIMITED = 1,
-    REAL_TIME_LIMIT_EXCEEDED = 2,
-    MEMORY_LIMIT_EXCEEDED = 3,
-    RUNTIME_ERROR = 4,
-    SYSTEM_ERROR = 5
 };
 
 
@@ -73,8 +64,9 @@ typedef struct result {
 
 typedef struct child_args {
     FILE *log_fp;
-    runner_config *config;
+    struct config *_config;
 } child_args;
+
 
 void run(struct config *, struct result *);
 #endif //JUDGER_RUNNER_H

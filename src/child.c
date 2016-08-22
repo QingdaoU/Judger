@@ -37,47 +37,47 @@ void close_file(FILE *fp, ...) {
 
 int child_process(void *args) {
     FILE *log_fp = ((child_args *) args)->log_fp;
-    runner_config *config = ((child_args *) args)->config;
+    struct config *_config = ((child_args *) args)->_config;
 
     // set memory limit
-    if (config->max_memory != UNLIMITED) {
+    if (_config->max_memory != UNLIMITED) {
         struct rlimit max_memory;
-        max_memory.rlim_cur = max_memory.rlim_max = (rlim_t) (config->max_memory) * 2;
+        max_memory.rlim_cur = max_memory.rlim_max = (rlim_t) (_config->max_memory) * 2;
         if (setrlimit(RLIMIT_AS, &max_memory) != 0) {
             CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
         }
     }
 
     // set cpu time limit (in seconds)
-    if (config->max_cpu_time != UNLIMITED) {
+    if (_config->max_cpu_time != UNLIMITED) {
         struct rlimit max_cpu_time;
-        max_cpu_time.rlim_cur = max_cpu_time.rlim_max = (rlim_t) ((config->max_cpu_time + 1000) / 1000);
+        max_cpu_time.rlim_cur = max_cpu_time.rlim_max = (rlim_t) ((_config->max_cpu_time + 1000) / 1000);
         if (setrlimit(RLIMIT_CPU, &max_cpu_time) != 0) {
             CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
         }
     }
 
     // set max process number limit
-    if (config->max_process_number != UNLIMITED) {
+    if (_config->max_process_number != UNLIMITED) {
         struct rlimit max_process_number;
-        max_process_number.rlim_cur = max_process_number.rlim_max = (rlim_t) config->max_process_number;
+        max_process_number.rlim_cur = max_process_number.rlim_max = (rlim_t) _config->max_process_number;
         if (setrlimit(RLIMIT_NPROC, &max_process_number) != 0) {
             CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
         }
     }
 
     // set max output size limit
-    if (config->max_output_size != UNLIMITED) {
+    if (_config->max_output_size != UNLIMITED) {
         struct rlimit max_output_size;
-        max_output_size.rlim_cur = max_output_size.rlim_max = (rlim_t ) config->max_output_size;
+        max_output_size.rlim_cur = max_output_size.rlim_max = (rlim_t ) _config->max_output_size;
         if (setrlimit(RLIMIT_FSIZE, &max_output_size) != 0) {
             CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
         }
     }
 
     FILE *input_file = NULL, *output_file = NULL, *error_file = NULL;
-    if (config->input_path != NULL) {
-        input_file = fopen(config->input_path, "r");
+    if (_config->input_path != NULL) {
+        input_file = fopen(_config->input_path, "r");
         if (input_file == NULL) {
             CHILD_ERROR_EXIT(DUP2_FAILED);
         }
@@ -91,8 +91,8 @@ int child_process(void *args) {
         }
     }
 
-    if (config->output_path != NULL) {
-        output_file = fopen(config->output_path, "w");
+    if (_config->output_path != NULL) {
+        output_file = fopen(_config->output_path, "w");
         if (output_file == NULL) {
             close_file(input_file);
             CHILD_ERROR_EXIT(DUP2_FAILED);
@@ -104,13 +104,13 @@ int child_process(void *args) {
         }
     }
 
-    if (config->error_path != NULL) {
+    if (_config->error_path != NULL) {
         // if outfile and error_file is the same path, we use the same file pointer
-        if (strcmp(config->output_path, config->error_path) == 0) {
+        if (strcmp(_config->output_path, _config->error_path) == 0) {
             error_file = output_file;
         }
         else {
-            error_file = fopen(config->error_path, "w");
+            error_file = fopen(_config->error_path, "w");
             if (error_file == NULL) {
                 // todo log
                 close_file(input_file, output_file);
@@ -126,19 +126,19 @@ int child_process(void *args) {
     }
 
     // set gid
-    gid_t group_list[] = {config->gid};
-    if (config->gid != -1 && (setgid(config->gid) == -1 || setgroups(sizeof(group_list) / sizeof(gid_t), group_list) == -1)) {
+    gid_t group_list[] = {_config->gid};
+    if (_config->gid != -1 && (setgid(_config->gid) == -1 || setgroups(sizeof(group_list) / sizeof(gid_t), group_list) == -1)) {
         CHILD_ERROR_EXIT(SETUID_FAILED);
     }
 
     // set uid
-    if (config->uid != -1 && setuid(config->uid) == -1) {
+    if (_config->uid != -1 && setuid(_config->uid) == -1) {
         CHILD_ERROR_EXIT(SETUID_FAILED);
     }
 
     // load seccomp so
-    if (config->seccomp_rule_so_path != NULL) {
-        void *handler = dlopen(config->seccomp_rule_so_path, RTLD_LAZY);
+    if (_config->seccomp_rule_so_path != NULL) {
+        void *handler = dlopen(_config->seccomp_rule_so_path, RTLD_LAZY);
         int (*load_seccomp)(void *, runner_config *);
 
         if (!handler) {
@@ -146,12 +146,12 @@ int child_process(void *args) {
             CHILD_ERROR_EXIT(LOAD_SECCOMP_FAILED);
         }
         load_seccomp = dlsym(handler, "load_seccomp");
-        if (load_seccomp(handler, config) != 0) {
+        if (load_seccomp(handler, _config) != 0) {
             CHILD_ERROR_EXIT(LOAD_SECCOMP_FAILED);
         }
     }
 
-    execve(config->exe_path, config->args, config->env);
+    execve(_config->exe_path, _config->args, _config->env);
     CHILD_ERROR_EXIT(EXECVE_FAILED);
     return 0;
 }
