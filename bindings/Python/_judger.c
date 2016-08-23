@@ -34,7 +34,6 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     if (!PyList_Check(args_list)) {
         RaiseValueError("args must be a list");
     }
-
     _config.args[count++] = _config.exe_path;
     args_iter = PyObject_GetIter(args_list);
     while (1) {
@@ -43,7 +42,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
             break;
         }
         if (!PyString_Check(next)) {
-            RaiseValueError("arg in args must be a string");
+            RaiseValueError("arg item must be a string");
         }
         _config.args[count] = PyString_AsString(next);
         count++;
@@ -52,6 +51,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     _config.args[count] = NULL;
 
     count = 0;
+
     if (!PyList_Check(env_list)) {
         RaiseValueError("env must be a list");
     }
@@ -61,13 +61,14 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         if (!next) {
             break;
         }
-        if (!PyString_Check(next) && !PyUnicode_Check(next)) {
+        if (!PyString_Check(next)) {
             RaiseValueError("env item must be a string");
         }
         _config.env[count] = PyString_AsString(next);
         count++;
     }
     _config.env[count] = NULL;
+    
     if (PyString_Check(rule_path)) {
         _config.seccomp_rule_so_path = PyString_AsString(rule_path);
     }

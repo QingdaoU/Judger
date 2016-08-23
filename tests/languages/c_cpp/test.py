@@ -128,3 +128,27 @@ judger
         result = _judger.run(**config)
         # re1.c return 25
         self.assertEqual(result["exit_code"], 25)
+
+    def test_re2(self):
+        config = self.config
+        config["exe_path"] = self._compile("re2.c")
+        config["seccomp_rule_so_path"] = None
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RUNTIME_ERROR)
+        self.assertEqual(result["signal"], signal.SIGSEGV)
+
+    def test_child_proc_cpu_time_limit(self):
+        config = self.config
+        config["exe_path"] = self._compile("child_proc_cpu_time_limit.c")
+        config["seccomp_rule_so_path"] = None
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.CPU_TIME_LIMIT_EXCEEDED)
+
+    def test_child_proc_real_time_limit(self):
+        config = self.config
+        config["exe_path"] = self._compile("child_proc_real_time_limit.c")
+        config["seccomp_rule_so_path"] = None
+        result = _judger.run(**config)
+        print result
+        self.assertEqual(result["result"], _judger.REAL_TIME_LIMIT_EXCEEDED)
+        self.assertEqual(result["signal"], signal.SIGKILL)
