@@ -112,15 +112,44 @@ void run(struct config *_config, struct result *_result) {
                                   resource_usage.ru_stime.tv_usec / 1000);
         _result->memory = resource_usage.ru_maxrss * 1024;
 
+        // get end time
+        gettimeofday(&end, NULL);
+        _result->real_time = (int) (end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
+
+        if (_result->exit_code != 0) {
+            _result->result = RUNTIME_ERROR;
+        }
         // if signaled
         if (WIFSIGNALED(status) != 0) {
             LOG_DEBUG(log_fp, "signal: %d", WTERMSIG(status));
             _result->signal = WTERMSIG(status);
+            if (_result->signal == SIGSEGV) {
+                if (_config->max_memory != UNLIMITED && _result->memory > _config->max_memory) {
+                    _result->result = MEMORY_LIMIT_EXCEEDED;
+                }
+                else {
+                    _result->result = RUNTIME_ERROR;
+                }
+            }
+            else if(_result->signal == SIGUSR1) {
+                _result->result = SYSTEM_ERROR;
+            }
+            else {
+                _result->result = RUNTIME_ERROR;
+            }
+        }
+        else {
+            if (_config->max_memory != UNLIMITED && _result->memory > _config->max_memory) {
+                _result->result = MEMORY_LIMIT_EXCEEDED;
+            }
+        }
+        if (_result->real_time > _config->max_real_time) {
+            _result->result = REAL_TIME_LIMIT_EXCEEDED;
+        }
+        if (_result->cpu_time > _config->max_cpu_time) {
+            _result->result = CPU_TIME_LIMITED;
         }
 
-        // get end time
-        gettimeofday(&end, NULL);
-        _result->real_time = (int) (end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
         log_close(log_fp);
     }
 }

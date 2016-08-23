@@ -8,6 +8,6 @@ before_install:
 install:
     - mkdir build && cd build
     - cmake .. && make && sudo make install
-    - cd ../bindings/Python && python setup.py install
+    - cd ../bindings/Python && sudo python setup.py install
 script:
     - cd ../../tests && sudo python test.py

@@ -33,7 +33,7 @@ enum {
 };
 
 
-typedef struct config {
+struct config {
     int max_cpu_time;
     int max_real_time;
     long max_memory;
@@ -49,17 +49,27 @@ typedef struct config {
     char *seccomp_rule_so_path;
     uid_t uid;
     gid_t gid;
-} runner_config;
+};
 
 
-typedef struct result {
+enum {
+    CPU_TIME_LIMITED = 1,
+    REAL_TIME_LIMIT_EXCEEDED = 2,
+    MEMORY_LIMIT_EXCEEDED = 3,
+    RUNTIME_ERROR = 4,
+    SYSTEM_ERROR = 5
+};
+
+
+struct result {
     int cpu_time;
     int real_time;
     long memory;
     int signal;
     int exit_code;
     int error;
-} runner_result;
+    int result;
+};
 
 
 typedef struct child_args {

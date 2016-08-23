@@ -139,7 +139,7 @@ int child_process(void *args) {
     // load seccomp so
     if (_config->seccomp_rule_so_path != NULL) {
         void *handler = dlopen(_config->seccomp_rule_so_path, RTLD_LAZY);
-        int (*load_seccomp)(void *, runner_config *);
+        int (*load_seccomp)(void *, struct config *);
 
         if (!handler) {
             LOG_FATAL(log_fp, "seccomp failed");

@@ -10,7 +10,7 @@
 
 static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     struct config _config;
-    struct result _result = {0, 0, 0, 0, 0, 0};
+    struct result _result = {0, 0, 0, 0, 0, 0, 0};
 
     PyObject *args_list = NULL, *env_list = NULL, *rule_path = NULL, *args_iter = NULL, *env_iter = NULL, *next = NULL;
 
@@ -80,7 +80,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         }
     }
 
-    void *handler = dlopen("/usr/lib/judger/lib/libjudger.so", RTLD_LAZY);
+    void *handler = dlopen("/usr/lib/judger/libjudger.so", RTLD_LAZY);
     int (*judger_run)(struct config *, struct result *);
 
     if (!handler) {
@@ -89,10 +89,14 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     judger_run = dlsym(handler, "run");
     judger_run(&_config, &_result);
 
-    return Py_BuildValue("{s:l, s:i, s:i, s:i, s:i, s:i}",
-                         "cpu_time", _result.cpu_time, "memory", _result.memory, "real_time", _result.real_time,
-                         "signal", _result.signal, "exit_code", _result.exit_code, "error", _result.error);
-
+    return Py_BuildValue("{s:l, s:l, s:i, s:i, s:i, s:i, s:i}",
+                         "cpu_time", _result.cpu_time,
+                         "memory", _result.memory,
+                         "real_time", _result.real_time,
+                         "signal", _result.signal,
+                         "exit_code", _result.exit_code,
+                         "error", _result.error,
+                         "result", _result.result);
 }
 
 
@@ -105,4 +109,10 @@ static PyMethodDef judger_methods[] = {
 PyMODINIT_FUNC init_judger(void) {
     PyObject *module = Py_InitModule3("_judger", judger_methods, NULL);
     PyModule_AddIntConstant(module, "UNLIMITED", UNLIMITED);
+    PyModule_AddIntConstant(module, "SUCCESS", SUCCESS);
+    PyModule_AddIntConstant(module, "CPU_TIME_LIMIT_EXCEEDED", CPU_TIME_LIMITED);
+    PyModule_AddIntConstant(module, "REAL_TIME_LIMIT_EXCEEDED", REAL_TIME_LIMIT_EXCEEDED);
+    PyModule_AddIntConstant(module, "MEMORY_LIMIT_EXCEEDED", MEMORY_LIMIT_EXCEEDED);
+    PyModule_AddIntConstant(module, "RUNTIME_ERROR", RUNTIME_ERROR);
+    PyModule_AddIntConstant(module, "SYSTEM_ERROR", SYSTEM_ERROR);
 }
