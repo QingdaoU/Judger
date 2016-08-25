@@ -8,5 +8,6 @@ int main()
     int *a = NULL;
     a = (int *)malloc(size);
     memset(a, 1, size);
+    free(a);
     return 0;
 }

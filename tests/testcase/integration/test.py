@@ -169,7 +169,7 @@ class IntegrationTest(base.BaseTestCase):
         self.assertEqual(result["signal"], signal.SIGKILL)
         self.assertTrue(result["cpu_time"] >= config["max_cpu_time"])
 
-    def test_memory(self):
+    def test_memory1(self):
         config = self.config
         config["max_memory"] = 64 * 1024 * 1024
         config["exe_path"] = self._compile("memory1.c")
@@ -188,6 +188,14 @@ class IntegrationTest(base.BaseTestCase):
         # malloc failed, so it should use a little memory
         self.assertTrue(result["memory"] < 12 * 1024 * 1024)
         self.assertEqual(result["result"], _judger.RUNTIME_ERROR)
+
+    def test_memory3(self):
+        config = self.config
+        config["max_memory"] = 512 * 1024 * 1024
+        config["exe_path"] = self._compile("memory3.c")
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.SUCCESS)
+        self.assertTrue(result["memory"] >= 102400000 * 4)
 
     def test_re1(self):
         config = self.config
@@ -236,7 +244,6 @@ class IntegrationTest(base.BaseTestCase):
         config["uid"] = 65534
         config["gid"] = 65534
         result = _judger.run(**config)
-        print result
         self.assertEqual(result["result"], _judger.SUCCESS)
         output = "uid=65534(nobody) gid=65534(nogroup) groups=65534(nogroup)\nuid 65534\ngid 65534\n"
         self.assertEqual(output, self.output_content(config["output_path"]))

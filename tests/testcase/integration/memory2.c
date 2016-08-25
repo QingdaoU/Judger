@@ -12,6 +12,7 @@ int main()
     }
     else {
         memset(a, 1, size);
+        free(a);
         return 0;
     }
 }
