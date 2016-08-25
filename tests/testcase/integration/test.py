@@ -1,8 +1,7 @@
 # coding=utf-8
 import _judger
 import signal
-import pwd
-import grp
+import os
 
 from .. import base
 
@@ -27,8 +26,11 @@ class IntegrationTest(base.BaseTestCase):
                        "gid": 0}
         self.workspace = self.init_workspace("integration")
         
-    def _compile(self, src_name):
-        return super(IntegrationTest, self)._compile("integration/" + src_name)
+    def _compile_c(self, src_name):
+        return super(IntegrationTest, self)._compile_c("integration/" + src_name)
+
+    def _compile_cpp(self, src_name):
+        return super(IntegrationTest, self)._compile_cpp("integration/" + src_name)
 
     def test_args_validation(self):
         with self.assertRaisesRegexp(ValueError, "Invalid args and kwargs"):
@@ -124,7 +126,7 @@ class IntegrationTest(base.BaseTestCase):
 
     def test_normal(self):
         config = self.config
-        config["exe_path"] = self._compile("normal.c")
+        config["exe_path"] = self._compile_c("normal.c")
         config["input_path"] = self.make_input("judger_test")
         config["output_path"] = config["error_path"] = self.output_path()
         result = _judger.run(**config)
@@ -134,7 +136,7 @@ class IntegrationTest(base.BaseTestCase):
 
     def test_args(self):
         config = self.config
-        config["exe_path"] = self._compile("args.c")
+        config["exe_path"] = self._compile_c("args.c")
         config["args"] = ["test", "hehe", "000"]
         config["output_path"] = config["error_path"] = self.output_path()
         result = _judger.run(**config)
@@ -144,7 +146,7 @@ class IntegrationTest(base.BaseTestCase):
 
     def test_env(self):
         config = self.config
-        config["exe_path"] = self._compile("env.c")
+        config["exe_path"] = self._compile_c("env.c")
         config["output_path"] = config["error_path"] = self.output_path()
         result = _judger.run(**config)
         output = "judger_test\njudger\n"
@@ -153,7 +155,7 @@ class IntegrationTest(base.BaseTestCase):
 
     def test_real_time(self):
         config = self.config
-        config["exe_path"] = self._compile("sleep.c")
+        config["exe_path"] = self._compile_c("sleep.c")
         config["seccomp_rule_so_path"] = None
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.REAL_TIME_LIMIT_EXCEEDED)
@@ -162,7 +164,7 @@ class IntegrationTest(base.BaseTestCase):
 
     def test_cpu_time(self):
         config = self.config
-        config["exe_path"] = self._compile("while1.c")
+        config["exe_path"] = self._compile_c("while1.c")
         config["seccomp_rule_so_path"] = None
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.CPU_TIME_LIMIT_EXCEEDED)
@@ -172,7 +174,7 @@ class IntegrationTest(base.BaseTestCase):
     def test_memory1(self):
         config = self.config
         config["max_memory"] = 64 * 1024 * 1024
-        config["exe_path"] = self._compile("memory1.c")
+        config["exe_path"] = self._compile_c("memory1.c")
         result = _judger.run(**config)
         # malloc succeeded
         self.assertTrue(result["memory"] > 80 * 1024 * 1024)
@@ -181,7 +183,7 @@ class IntegrationTest(base.BaseTestCase):
     def test_memory2(self):
         config = self.config
         config["max_memory"] = 64 * 1024 * 1024
-        config["exe_path"] = self._compile("memory2.c")
+        config["exe_path"] = self._compile_c("memory2.c")
         result = _judger.run(**config)
         # malloc failed, return 1
         self.assertEqual(result["exit_code"], 1)
@@ -192,21 +194,21 @@ class IntegrationTest(base.BaseTestCase):
     def test_memory3(self):
         config = self.config
         config["max_memory"] = 512 * 1024 * 1024
-        config["exe_path"] = self._compile("memory3.c")
+        config["exe_path"] = self._compile_c("memory3.c")
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.SUCCESS)
         self.assertTrue(result["memory"] >= 102400000 * 4)
 
     def test_re1(self):
         config = self.config
-        config["exe_path"] = self._compile("re1.c")
+        config["exe_path"] = self._compile_c("re1.c")
         result = _judger.run(**config)
         # re1.c return 25
         self.assertEqual(result["exit_code"], 25)
 
     def test_re2(self):
         config = self.config
-        config["exe_path"] = self._compile("re2.c")
+        config["exe_path"] = self._compile_c("re2.c")
         config["seccomp_rule_so_path"] = None
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RUNTIME_ERROR)
@@ -214,14 +216,14 @@ class IntegrationTest(base.BaseTestCase):
 
     def test_child_proc_cpu_time_limit(self):
         config = self.config
-        config["exe_path"] = self._compile("child_proc_cpu_time_limit.c")
+        config["exe_path"] = self._compile_c("child_proc_cpu_time_limit.c")
         config["seccomp_rule_so_path"] = None
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.CPU_TIME_LIMIT_EXCEEDED)
 
     def test_child_proc_real_time_limit(self):
         config = self.config
-        config["exe_path"] = self._compile("child_proc_real_time_limit.c")
+        config["exe_path"] = self._compile_c("child_proc_real_time_limit.c")
         config["seccomp_rule_so_path"] = None
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.REAL_TIME_LIMIT_EXCEEDED)
@@ -229,7 +231,7 @@ class IntegrationTest(base.BaseTestCase):
 
     def test_stdout_and_stderr(self):
         config = self.config
-        config["exe_path"] = self._compile("stdout_stderr.c")
+        config["exe_path"] = self._compile_c("stdout_stderr.c")
         config["output_path"] = config["error_path"] = self.output_path()
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.SUCCESS)
@@ -238,7 +240,7 @@ class IntegrationTest(base.BaseTestCase):
 
     def test_uid_and_gid(self):
         config = self.config
-        config["exe_path"] = self._compile("uid_gid.c")
+        config["exe_path"] = self._compile_c("uid_gid.c")
         config["output_path"] = config["error_path"] = self.output_path()
         config["seccomp_rule_so_path"] = None
         config["uid"] = 65534
@@ -247,3 +249,25 @@ class IntegrationTest(base.BaseTestCase):
         self.assertEqual(result["result"], _judger.SUCCESS)
         output = "uid=65534(nobody) gid=65534(nogroup) groups=65534(nogroup)\nuid 65534\ngid 65534\n"
         self.assertEqual(output, self.output_content(config["output_path"]))
+
+    def test_gcc_random(self):
+        config = self.config
+        config["exe_path"] = "/usr/bin/gcc"
+        config["seccomp_rule_so_path"] = None
+        config["args"] = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "gcc_random.c"),
+                          "-o", os.path.join(self.workspace, "gcc_random")]
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.CPU_TIME_LIMIT_EXCEEDED)
+        self.assertTrue(result["cpu_time"] >= 1950)
+        self.assertTrue(result["real_time"] >= 1950)
+
+    def test_cpp_meta(self):
+        config = self.config
+        config["exe_path"] = "/usr/bin/g++"
+        config["seccomp_rule_so_path"] = None
+        config["args"] = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "cpp_meta.cpp"),
+                          "-o", os.path.join(self.workspace, "cpp_meta")]
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.CPU_TIME_LIMIT_EXCEEDED)
+        self.assertTrue(result["cpu_time"] >= 1950)
+        self.assertTrue(result["real_time"] >= 1950)

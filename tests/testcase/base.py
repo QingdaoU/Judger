@@ -23,10 +23,18 @@ class BaseTestCase(TestCase):
     def rand_str(self):
         return ''.join(map(lambda xx:(hex(ord(xx))[2:]), os.urandom(16)))
 
-    def _compile(self, src_name):
+    def _compile_c(self, src_name):
         path = os.path.dirname(os.path.abspath(__file__))
         exe_path = os.path.join(self.workspace, src_name.split("/")[-1].split(".")[0])
         cmd = "gcc {0} -g -O0 -o {1}".format(os.path.join(path, src_name), exe_path)
+        if os.system(cmd):
+            raise AssertionError("compile error, cmd: {0}".format(cmd))
+        return exe_path
+
+    def _compile_cpp(self, src_name):
+        path = os.path.dirname(os.path.abspath(__file__))
+        exe_path = os.path.join(self.workspace, src_name.split("/")[-1].split(".")[0])
+        cmd = "g++ {0} -g -O0 -o {1}".format(os.path.join(path, src_name), exe_path)
         if os.system(cmd):
             raise AssertionError("compile error, cmd: {0}".format(cmd))
         return exe_path
