@@ -21,7 +21,7 @@ class IntegrationTest(base.BaseTestCase):
                        "args": [],
                        "env": ["env=judger_test", "test=judger"],
                        "log_path": "judger_test.log",
-                       "seccomp_rule_so_path": "/usr/lib/judger/librule_c_cpp.so",
+                       "seccomp_rule_so_path": None,
                        "uid": 0,
                        "gid": 0}
         self.workspace = self.init_workspace("integration")
@@ -156,7 +156,6 @@ class IntegrationTest(base.BaseTestCase):
     def test_real_time(self):
         config = self.config
         config["exe_path"] = self._compile_c("sleep.c")
-        config["seccomp_rule_so_path"] = None
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.REAL_TIME_LIMIT_EXCEEDED)
         self.assertEqual(result["signal"], signal.SIGKILL)
@@ -165,7 +164,6 @@ class IntegrationTest(base.BaseTestCase):
     def test_cpu_time(self):
         config = self.config
         config["exe_path"] = self._compile_c("while1.c")
-        config["seccomp_rule_so_path"] = None
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.CPU_TIME_LIMIT_EXCEEDED)
         self.assertEqual(result["signal"], signal.SIGKILL)
@@ -209,7 +207,6 @@ class IntegrationTest(base.BaseTestCase):
     def test_re2(self):
         config = self.config
         config["exe_path"] = self._compile_c("re2.c")
-        config["seccomp_rule_so_path"] = None
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RUNTIME_ERROR)
         self.assertEqual(result["signal"], signal.SIGSEGV)
@@ -217,14 +214,12 @@ class IntegrationTest(base.BaseTestCase):
     def test_child_proc_cpu_time_limit(self):
         config = self.config
         config["exe_path"] = self._compile_c("child_proc_cpu_time_limit.c")
-        config["seccomp_rule_so_path"] = None
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.CPU_TIME_LIMIT_EXCEEDED)
 
     def test_child_proc_real_time_limit(self):
         config = self.config
         config["exe_path"] = self._compile_c("child_proc_real_time_limit.c")
-        config["seccomp_rule_so_path"] = None
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.REAL_TIME_LIMIT_EXCEEDED)
         self.assertEqual(result["signal"], signal.SIGKILL)
@@ -242,7 +237,6 @@ class IntegrationTest(base.BaseTestCase):
         config = self.config
         config["exe_path"] = self._compile_c("uid_gid.c")
         config["output_path"] = config["error_path"] = self.output_path()
-        config["seccomp_rule_so_path"] = None
         config["uid"] = 65534
         config["gid"] = 65534
         result = _judger.run(**config)
@@ -253,7 +247,6 @@ class IntegrationTest(base.BaseTestCase):
     def test_gcc_random(self):
         config = self.config
         config["exe_path"] = "/usr/bin/gcc"
-        config["seccomp_rule_so_path"] = None
         config["args"] = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "gcc_random.c"),
                           "-o", os.path.join(self.workspace, "gcc_random")]
         result = _judger.run(**config)
@@ -264,7 +257,6 @@ class IntegrationTest(base.BaseTestCase):
     def test_cpp_meta(self):
         config = self.config
         config["exe_path"] = "/usr/bin/g++"
-        config["seccomp_rule_so_path"] = None
         config["args"] = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "cpp_meta.cpp"),
                           "-o", os.path.join(self.workspace, "cpp_meta")]
         result = _judger.run(**config)
