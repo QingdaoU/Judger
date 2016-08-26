@@ -4,8 +4,10 @@
 #include <sys/types.h>
 #include <stdio.h>
 
-#define UNLIMITED -1
+// (ver >> 16) & 0xff, (ver >> 8) & 0xff, ver & 0xff  -> real version
+#define VERSION 0x020000
 
+#define UNLIMITED -1
 
 #define LOG_ERROR(error_code) LOG_FATAL(log_fp, "Error: "#error_code);
 

@@ -109,6 +109,7 @@ static PyMethodDef judger_methods[] = {
 
 PyMODINIT_FUNC init_judger(void) {
     PyObject *module = Py_InitModule3("_judger", judger_methods, NULL);
+    PyModule_AddIntConstant(module, "VERSION", VERSION);
     PyModule_AddIntConstant(module, "UNLIMITED", UNLIMITED);
     PyModule_AddIntConstant(module, "SUCCESS", SUCCESS);
     PyModule_AddIntConstant(module, "CPU_TIME_LIMIT_EXCEEDED", CPU_TIME_LIMITED);
