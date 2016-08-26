@@ -34,5 +34,5 @@ class SeccompTest(base.BaseTestCase):
         config["exe_path"] = self._compile_c("mmap.c")
         config["seccomp_rule_so_path"] = "/usr/lib/judger/librule_c_cpp.so"
         result = _judger.run(**config)
-        self.assertEqual(result["result"], _judger.RUNTIME_ERROR)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
         self.assertEqual(result["signal"], 31)
