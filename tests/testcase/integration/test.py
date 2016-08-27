@@ -26,8 +26,8 @@ class IntegrationTest(base.BaseTestCase):
                        "gid": 0}
         self.workspace = self.init_workspace("integration")
         
-    def _compile_c(self, src_name):
-        return super(IntegrationTest, self)._compile_c("integration/" + src_name)
+    def _compile_c(self, src_name, extra_flags=None):
+        return super(IntegrationTest, self)._compile_c("integration/" + src_name, extra_flags)
 
     def _compile_cpp(self, src_name):
         return super(IntegrationTest, self)._compile_cpp("integration/" + src_name)

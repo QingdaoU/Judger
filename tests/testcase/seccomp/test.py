@@ -26,8 +26,8 @@ class SeccompTest(base.BaseTestCase):
                        "gid": 0}
         self.workspace = self.init_workspace("seccomp")
 
-    def _compile_c(self, src_name):
-        return super(SeccompTest, self)._compile_c("seccomp/" + src_name)
+    def _compile_c(self, src_name, extra_flags=None):
+        return super(SeccompTest, self)._compile_c("seccomp/" + src_name, extra_flags)
 
     def test_mmap_write_file(self):
         config = self.config
@@ -36,3 +36,12 @@ class SeccompTest(base.BaseTestCase):
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
         self.assertEqual(result["signal"], 31)
+
+    def test_math(self):
+        config = self.config
+        config["exe_path"] = self._compile_c("math.c", extra_flags=["-lm"])
+        config["seccomp_rule_so_path"] = "/usr/lib/judger/librule_c_cpp.so"
+        config["output_path"] = self.output_path()
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
+        self.assertEqual("sin", self.output_content(config["output_path"]))
