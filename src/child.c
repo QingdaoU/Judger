@@ -149,6 +149,7 @@ int child_process(void *args) {
         if (load_seccomp(handler, _config) != 0) {
             CHILD_ERROR_EXIT(LOAD_SECCOMP_FAILED);
         }
+        dlclose(handler);
     }
 
     execve(_config->exe_path, _config->args, _config->env);

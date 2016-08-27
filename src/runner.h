@@ -12,12 +12,12 @@
 #define LOG_ERROR(error_code) LOG_FATAL(log_fp, "Error: "#error_code);
 
 #define ERROR_EXIT(error_code)\
-        {\
-            LOG_ERROR(error_code);  \
-            _result->error = error_code; \
-            log_close(log_fp);  \
-            return; \
-        }
+    {\
+        LOG_ERROR(error_code);  \
+        _result->error = error_code; \
+        log_close(log_fp);  \
+        return; \
+    }
 
 
 enum {
