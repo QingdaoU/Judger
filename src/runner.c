@@ -142,10 +142,10 @@ void run(struct config *_config, struct result *_result) {
                 _result->result = MEMORY_LIMIT_EXCEEDED;
             }
         }
-        if (_result->real_time > _config->max_real_time) {
+        if (_config->max_real_time != UNLIMITED && _result->real_time > _config->max_real_time) {
             _result->result = REAL_TIME_LIMIT_EXCEEDED;
         }
-        if (_result->cpu_time > _config->max_cpu_time) {
+        if (_config->max_cpu_time != UNLIMITED && _result->cpu_time > _config->max_cpu_time) {
             _result->result = CPU_TIME_LIMITED;
         }
 
