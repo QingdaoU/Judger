@@ -9,12 +9,12 @@ sudo apt-get install libseccomp-dev
 mkdir build && cd build && cmake .. && make && sudo make install
 ```
 
-
 ## C API
 
 `#include <runner.h>` then call `run` function with `struct config` and `struct result` pointer.
 
 ## `struct config` members
+
  - `max_cpu_time`(ms):  max cpu time this process can cost, -1 for unlimited
  - `max_real_time`(ms):  max time this process can run, -1 for unlimited
  - `max_memory`(byte):  max size of the process's virtual memory (address space), -1 for unlimited
@@ -85,7 +85,7 @@ cd tests &&  sudo python test.py
  - Linux x64 and kernel version > 3.17 required
  - Judger security relies on Docker with default security config [More](todo)
  - Tested under Ubuntu 14.04 docker container. System calls may vary due to different system and kernel versions
- - Root user required to run judger
+ - Root user required to change uid / gid
  - Why use seccomp instead of ptrace? Ptrace can decrease process's performance significantly, for each system call, twice 
  context switch between child process and parent process is needed.
  - How to custom seccomp rule? [Example here]()  and then reinstall jduger, your code will be compiled and installed under 
