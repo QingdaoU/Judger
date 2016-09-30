@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 // (ver >> 16) & 0xff, (ver >> 8) & 0xff, ver & 0xff  -> real version
-#define VERSION 0x020000
+#define VERSION 0x020001
 
 #define UNLIMITED -1
 

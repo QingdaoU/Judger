@@ -37,6 +37,7 @@ void close_file(FILE *fp, ...) {
 
 int child_process(void *args) {
     FILE *log_fp = ((child_args *) args)->log_fp;
+    FILE *input_file = NULL, *output_file = NULL, *error_file = NULL;
     struct config *_config = ((child_args *) args)->_config;
 
     // set memory limit
@@ -75,7 +76,6 @@ int child_process(void *args) {
         }
     }
 
-    FILE *input_file = NULL, *output_file = NULL, *error_file = NULL;
     if (_config->input_path != NULL) {
         input_file = fopen(_config->input_path, "r");
         if (input_file == NULL) {
@@ -86,7 +86,6 @@ int child_process(void *args) {
         // On error, -1 is returned, and errno is set appropriately.
         if (dup2(fileno(input_file), fileno(stdin)) == -1) {
             // todo log
-            close_file(input_file);
             CHILD_ERROR_EXIT(DUP2_FAILED);
         }
     }
@@ -94,33 +93,29 @@ int child_process(void *args) {
     if (_config->output_path != NULL) {
         output_file = fopen(_config->output_path, "w");
         if (output_file == NULL) {
-            close_file(input_file);
             CHILD_ERROR_EXIT(DUP2_FAILED);
         }
         // redirect stdout -> file
         if (dup2(fileno(output_file), fileno(stdout)) == -1) {
-            close_file(input_file, output_file);
             CHILD_ERROR_EXIT(DUP2_FAILED);
         }
     }
 
     if (_config->error_path != NULL) {
         // if outfile and error_file is the same path, we use the same file pointer
-        if (strcmp(_config->output_path, _config->error_path) == 0) {
+        if (_config->output_path != NULL && strcmp(_config->output_path, _config->error_path) == 0) {
             error_file = output_file;
         }
         else {
             error_file = fopen(_config->error_path, "w");
             if (error_file == NULL) {
                 // todo log
-                close_file(input_file, output_file);
                 CHILD_ERROR_EXIT(DUP2_FAILED);
             }
         }
         // redirect stderr -> file
         if (dup2(fileno(error_file), fileno(stderr)) == -1) {
             // todo log
-            close_file(input_file, output_file, error_file);
             CHILD_ERROR_EXIT(DUP2_FAILED);
         }
     }
