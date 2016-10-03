@@ -5,14 +5,18 @@
 #include "../../src/runner.h"
 
 
-#define RaiseValueError(msg)  {PyErr_SetString(PyExc_ValueError, msg); return NULL;}
+#define RaiseValueError(msg)\
+    { \
+        PyErr_SetString(PyExc_ValueError, msg); \
+        return NULL; \
+    }
 
 
 static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     struct config _config;
     struct result _result = {0, 0, 0, 0, 0, 0, 0};
 
-    PyObject *args_list = NULL, *env_list = NULL, *rule_path = NULL, *args_iter = NULL, *env_iter = NULL, *next = NULL;
+    PyObject *args_list, *env_list, *rule_path, *args_iter, *env_iter, *next;
 
     int count = 0;
 
@@ -32,27 +36,32 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     }
 
     if (!PyList_Check(args_list)) {
+        // fixme decref
         RaiseValueError("args must be a list");
     }
     _config.args[count++] = _config.exe_path;
     args_iter = PyObject_GetIter(args_list);
     while (1) {
-        next = PyIter_Next((args_iter));
+        next = PyIter_Next(args_iter);
         if (!next) {
             break;
         }
         if (!PyString_Check(next)) {
+            Py_DECREF(next);
             RaiseValueError("arg item must be a string");
         }
         _config.args[count] = PyString_AsString(next);
+        Py_DECREF(next);
         count++;
     }
-
     _config.args[count] = NULL;
+    Py_DECREF(args_list);
+    Py_DECREF(args_iter);
 
     count = 0;
 
     if (!PyList_Check(env_list)) {
+        // fixme decref
         RaiseValueError("env must be a list");
     }
     env_iter = PyObject_GetIter(env_list);
@@ -62,21 +71,28 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
             break;
         }
         if (!PyString_Check(next)) {
+            Py_DECREF(next);
             RaiseValueError("env item must be a string");
         }
         _config.env[count] = PyString_AsString(next);
+        Py_DECREF(next);
         count++;
     }
     _config.env[count] = NULL;
+    Py_DECREF(env_list);
+    Py_DECREF(env_iter);
     
     if (PyString_Check(rule_path)) {
         _config.seccomp_rule_so_path = PyString_AsString(rule_path);
+        Py_DECREF(rule_path);
     }
     else {
         if (rule_path == Py_None) {
+            Py_DECREF(rule_path);
             _config.seccomp_rule_so_path = NULL;
         }
         else {
+            // fixme decref
             RaiseValueError("seccomp_rule_so_path must be string or None");
         }
     }
@@ -85,6 +101,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     int (*judger_run)(struct config *, struct result *);
 
     if (!handler) {
+        // fixme decref
         RaiseValueError("dlopen error")
     }
     judger_run = dlsym(handler, "run");
