@@ -55,7 +55,7 @@ struct config {
 
 
 enum {
-    CPU_TIME_LIMITED = 1,
+    CPU_TIME_LIMITED_EXCEEDED = 1,
     REAL_TIME_LIMIT_EXCEEDED = 2,
     MEMORY_LIMIT_EXCEEDED = 3,
     RUNTIME_ERROR = 4,
