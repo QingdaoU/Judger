@@ -130,7 +130,7 @@ PyMODINIT_FUNC init_judger(void) {
     PyModule_AddIntConstant(module, "UNLIMITED", UNLIMITED);
     PyModule_AddIntConstant(module, "RESULT_WRONG_ANSWER", WRONG_ANSWER);
     PyModule_AddIntConstant(module, "RESULT_SUCCESS", SUCCESS);
-    PyModule_AddIntConstant(module, "RESULT_CPU_TIME_LIMIT_EXCEEDED", CPU_TIME_LIMITED_EXCEEDED);
+    PyModule_AddIntConstant(module, "RESULT_CPU_TIME_LIMIT_EXCEEDED", CPU_TIME_LIMIT_EXCEEDED);
     PyModule_AddIntConstant(module, "RESULT_REAL_TIME_LIMIT_EXCEEDED", REAL_TIME_LIMIT_EXCEEDED);
     PyModule_AddIntConstant(module, "RESULT_MEMORY_LIMIT_EXCEEDED", MEMORY_LIMIT_EXCEEDED);
     PyModule_AddIntConstant(module, "RESULT_RUNTIME_ERROR", RUNTIME_ERROR);

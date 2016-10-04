@@ -146,7 +146,7 @@ void run(struct config *_config, struct result *_result) {
             _result->result = REAL_TIME_LIMIT_EXCEEDED;
         }
         if (_config->max_cpu_time != UNLIMITED && _result->cpu_time > _config->max_cpu_time) {
-            _result->result = CPU_TIME_LIMITED_EXCEEDED;
+            _result->result = CPU_TIME_LIMIT_EXCEEDED;
         }
 
         log_close(log_fp);
