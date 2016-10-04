@@ -128,6 +128,7 @@ PyMODINIT_FUNC init_judger(void) {
     PyObject *module = Py_InitModule3("_judger", judger_methods, NULL);
     PyModule_AddIntConstant(module, "VERSION", VERSION);
     PyModule_AddIntConstant(module, "UNLIMITED", UNLIMITED);
+    PyModule_AddIntConstant(module, "RESULT_WRONG_ANSWER", WRONG_ANSWER);
     PyModule_AddIntConstant(module, "RESULT_SUCCESS", SUCCESS);
     PyModule_AddIntConstant(module, "RESULT_CPU_TIME_LIMIT_EXCEEDED", CPU_TIME_LIMITED_EXCEEDED);
     PyModule_AddIntConstant(module, "RESULT_REAL_TIME_LIMIT_EXCEEDED", REAL_TIME_LIMIT_EXCEEDED);
