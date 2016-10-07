@@ -137,7 +137,7 @@ int child_process(void *args) {
         int (*load_seccomp)(void *, struct config *);
 
         if (!handler) {
-            LOG_FATAL(log_fp, "seccomp failed");
+            LOG_FATAL(log_fp, "seccomp failed, %s", dlerror());
             CHILD_ERROR_EXIT(LOAD_SECCOMP_FAILED);
         }
         load_seccomp = dlsym(handler, "load_seccomp");
