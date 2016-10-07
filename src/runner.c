@@ -19,7 +19,7 @@
 #include "child.h"
 #include "logger.h"
 
-#define STACK_SIZE (2 * 1024 * 1024)
+#define STACK_SIZE (32 * 1024 * 1024)
 
 void init_result(struct result *_result) {
     _result->error = SUCCESS;

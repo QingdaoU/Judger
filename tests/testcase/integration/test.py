@@ -11,7 +11,7 @@ class IntegrationTest(base.BaseTestCase):
         print "Running", self._testMethodName
         self.config = {"max_cpu_time": 1000,
                        "max_real_time": 3000,
-                       "max_memory": 1024 * 1024 * 1024,
+                       "max_memory": 1024 * 1024 * 128,
                        "max_process_number": 10,
                        "max_output_size": 1024 * 1024,
                        "exe_path": "/bin/ls",
@@ -21,7 +21,7 @@ class IntegrationTest(base.BaseTestCase):
                        "args": [],
                        "env": ["env=judger_test", "test=judger"],
                        "log_path": "judger_test.log",
-                       "seccomp_rule_so_path": None,
+                       "seccomp_rule_name": None,
                        "uid": 0,
                        "gid": 0}
         self.workspace = self.init_workspace("integration")
@@ -43,14 +43,14 @@ class IntegrationTest(base.BaseTestCase):
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
                         args="12344", env=["a=b"], log_path="1.log",
-                        seccomp_rule_so_path="1.so", uid=0, gid=0)
+                        seccomp_rule_name="1.so", uid=0, gid=0)
 
         with self.assertRaisesRegexp(ValueError, "args must be a list"):
             _judger.run(max_cpu_time=1000, max_real_time=2000, max_memory=1000000000,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
                         args={"k": "v"}, env=["a=b"], log_path="1.log",
-                        seccomp_rule_so_path="1.so", uid=0, gid=0)
+                        seccomp_rule_name="1.so", uid=0, gid=0)
 
     def test_args_item_must_be_string(self):
         with self.assertRaisesRegexp(ValueError, "arg item must be a string"):
@@ -58,21 +58,21 @@ class IntegrationTest(base.BaseTestCase):
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
                         args=["1234", 1234], env=["a=b"], log_path="1.log",
-                        seccomp_rule_so_path="1.so", uid=0, gid=0)
+                        seccomp_rule_name="1.so", uid=0, gid=0)
 
         with self.assertRaisesRegexp(ValueError, "arg item must be a string"):
             _judger.run(max_cpu_time=1000, max_real_time=2000, max_memory=1000000000,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
                         args=["1234", None], env=["a=b"], log_path="1.log",
-                        seccomp_rule_so_path="1.so", uid=0, gid=0)
+                        seccomp_rule_name="1.so", uid=0, gid=0)
 
         with self.assertRaisesRegexp(ValueError, "arg item must be a string"):
             _judger.run(max_cpu_time=1000, max_real_time=2000, max_memory=1000000000,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
                         args=[u"哈哈哈"], env=["a=b"], log_path="1.log",
-                        seccomp_rule_so_path="1.so", uid=0, gid=0)
+                        seccomp_rule_name="1.so", uid=0, gid=0)
 
     def test_env_must_be_list(self):
         with self.assertRaisesRegexp(ValueError, "env must be a list"):
@@ -80,14 +80,14 @@ class IntegrationTest(base.BaseTestCase):
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
                         args=["1234"], env="1234", log_path="1.log",
-                        seccomp_rule_so_path="1.so", uid=0, gid=0)
+                        seccomp_rule_name="1.so", uid=0, gid=0)
 
         with self.assertRaisesRegexp(ValueError, "env must be a list"):
             _judger.run(max_cpu_time=1000, max_real_time=2000, max_memory=1000000000,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
                         args=["1234"], env={"k": "v"}, log_path="1.log",
-                        seccomp_rule_so_path="1.so", uid=0, gid=0)
+                        seccomp_rule_name="1.so", uid=0, gid=0)
 
     def test_env_item_must_be_string(self):
         with self.assertRaisesRegexp(ValueError, "env item must be a string"):
@@ -95,34 +95,34 @@ class IntegrationTest(base.BaseTestCase):
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
                         args=["1234"], env=["1234", 1234], log_path="1.log",
-                        seccomp_rule_so_path="1.so", uid=0, gid=0)
+                        seccomp_rule_name="1.so", uid=0, gid=0)
 
         with self.assertRaisesRegexp(ValueError, "env item must be a string"):
             _judger.run(max_cpu_time=1000, max_real_time=2000, max_memory=1000000000,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
                         args=["1234"], env=["a=b", None], log_path="1.log",
-                        seccomp_rule_so_path="1.so", uid=0, gid=0)
+                        seccomp_rule_name="1.so", uid=0, gid=0)
 
         with self.assertRaisesRegexp(ValueError, "env item must be a string"):
             _judger.run(max_cpu_time=1000, max_real_time=2000, max_memory=1000000000,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
                         args=["1234"], env=[u"哈哈哈"], log_path="1.log",
-                        seccomp_rule_so_path="1.so", uid=0, gid=0)
+                        seccomp_rule_name="1.so", uid=0, gid=0)
 
     def test_seccomp_rule_can_be_none(self):
         _judger.run(max_cpu_time=1000, max_real_time=2000, max_memory=1000000000,
                     max_process_number=200, max_output_size=10000, exe_path="/bin/ls",
                     input_path="/dev/null", output_path="/dev/null", error_path="/dev/null",
                     args=["12344"], env=["a=b"], log_path="/dev/null",
-                    seccomp_rule_so_path="/usr/lib/judger/librule_c_cpp.so", uid=0, gid=0)
+                    seccomp_rule_name="c_cpp", uid=0, gid=0)
 
         _judger.run(max_cpu_time=1000, max_real_time=2000, max_memory=1000000000,
                     max_process_number=200, max_output_size=10000, exe_path="/bin/ls",
                     input_path="/dev/null", output_path="/dev/null", error_path="/dev/null",
                     args=["12344"], env=["a=b"], log_path="/dev/null",
-                    seccomp_rule_so_path=None, uid=0, gid=0)
+                    seccomp_rule_name=None, uid=0, gid=0)
 
     def test_normal(self):
         config = self.config
@@ -133,6 +133,13 @@ class IntegrationTest(base.BaseTestCase):
         output = "judger_test\nHello world"
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
         self.assertEqual(output, self.output_content(config["output_path"]))
+
+        config["exe_path"] = self._compile_c("math.c")
+        config["input_path"] = "/dev/null"
+        config["output_path"] = config["error_path"] = self.output_path()
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
+        self.assertEqual("abs 1024", self.output_content(config["output_path"]))
 
     def test_args(self):
         config = self.config
@@ -257,6 +264,7 @@ class IntegrationTest(base.BaseTestCase):
     def test_cpp_meta(self):
         config = self.config
         config["exe_path"] = "/usr/bin/g++"
+        config["max_memory"] = 1024 * 1024 * 1024
         config["args"] = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "cpp_meta.cpp"),
                           "-o", os.path.join(self.workspace, "cpp_meta")]
         result = _judger.run(**config)

@@ -3,7 +3,6 @@
 
 int main()
 {
-    sin(1.0);
-    printf("sin");
+    printf("abs %d", abs(-1024));
     return 0;
 }

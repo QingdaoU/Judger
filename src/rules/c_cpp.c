@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <seccomp.h>
 
-#include "../../runner.h"
+#include "../runner.h"
 
 
-int load_seccomp(void *dl_handler, struct config *_config) {
+int c_cpp_seccomp(struct config *_config) {
     int syscalls_whitelist[] = {SCMP_SYS(read), SCMP_SYS(fstat),
                                 SCMP_SYS(mmap), SCMP_SYS(mprotect),
                                 SCMP_SYS(munmap), SCMP_SYS(open),
@@ -33,9 +33,9 @@ int load_seccomp(void *dl_handler, struct config *_config) {
        return LOAD_SECCOMP_FAILED;
     }
     // mmap can write file, 5th args is fd
-    if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mmap), 1, SCMP_A5(SCMP_CMP_LE, 2)) != 0) {
-        return LOAD_SECCOMP_FAILED;
-    }
+    //if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(mmap), 1, SCMP_A5(SCMP_CMP_LE, 2)) != 0) {
+    //    return LOAD_SECCOMP_FAILED;
+    //}
     if (seccomp_load(ctx) != 0) {
         return LOAD_SECCOMP_FAILED;
     }

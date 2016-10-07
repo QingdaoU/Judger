@@ -16,7 +16,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     struct config _config;
     struct result _result = {0, 0, 0, 0, 0, 0, 0};
 
-    PyObject *args_list, *env_list, *rule_path, *args_iter, *env_iter, *next;
+    PyObject *args_list, *env_list, *rule_name, *args_iter, *env_iter, *next;
 
     int count = 0;
 
@@ -24,14 +24,14 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
                                   "max_process_number", "max_output_size",
                                   "exe_path", "input_path", "output_path",
                                   "error_path", "args", "env", "log_path",
-                                  "seccomp_rule_so_path", "uid", "gid", NULL};
+                                  "seccomp_rule_name", "uid", "gid", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iililssssOOsOii", kwargs_list,
                                      &(_config.max_cpu_time), &(_config.max_real_time), &(_config.max_memory),
                                      &(_config.max_process_number), &(_config.max_output_size),
                                      &(_config.exe_path), &(_config.input_path), &(_config.output_path),
                                      &(_config.error_path), &args_list, &env_list, &(_config.log_path),
-                                     &rule_path, &(_config.uid), &(_config.gid))) {
+                                     &rule_name, &(_config.uid), &(_config.gid))) {
         RaiseValueError("Invalid args and kwargs");
     }
 
@@ -82,14 +82,14 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     // Py_DECREF(env_list);
     // Py_DECREF(env_iter);
     
-    if (PyString_Check(rule_path)) {
-        _config.seccomp_rule_so_path = PyString_AsString(rule_path);
+    if (PyString_Check(rule_name)) {
+        _config.seccomp_rule_name = PyString_AsString(rule_name);
         // Py_DECREF(rule_path);
     }
     else {
-        if (rule_path == Py_None) {
+        if (rule_name == Py_None) {
             // Py_DECREF(rule_path);
-            _config.seccomp_rule_so_path = NULL;
+            _config.seccomp_rule_name = NULL;
         }
         else {
             // fixme decref

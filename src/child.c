@@ -19,6 +19,7 @@
 #include "runner.h"
 #include "child.h"
 #include "logger.h"
+#include "rules/seccomp_rules.h"
 
 #include "killer.h"
 
@@ -132,19 +133,17 @@ int child_process(void *args) {
     }
 
     // load seccomp so
-    if (_config->seccomp_rule_so_path != NULL) {
-        void *handler = dlopen(_config->seccomp_rule_so_path, RTLD_LAZY);
-        int (*load_seccomp)(void *, struct config *);
-
-        if (!handler) {
-            LOG_FATAL(log_fp, "seccomp failed, %s", dlerror());
+    if (_config->seccomp_rule_name != NULL) {
+        if (strcmp("c_cpp", _config->seccomp_rule_name) == 0) {
+            if (c_cpp_seccomp_rules(_config) != SUCCESS) {
+                CHILD_ERROR_EXIT(LOAD_SECCOMP_FAILED);
+            }
+        }
+        // other rules
+        else {
+            // rule does not exist
             CHILD_ERROR_EXIT(LOAD_SECCOMP_FAILED);
         }
-        load_seccomp = dlsym(handler, "load_seccomp");
-        if (load_seccomp(handler, _config) != 0) {
-            CHILD_ERROR_EXIT(LOAD_SECCOMP_FAILED);
-        }
-        dlclose(handler);
     }
 
     execve(_config->exe_path, _config->args, _config->env);

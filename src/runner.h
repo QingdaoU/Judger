@@ -49,7 +49,7 @@ struct config {
     char *args[256];
     char *env[256];
     char *log_path;
-    char *seccomp_rule_so_path;
+    char *seccomp_rule_name;
     uid_t uid;
     gid_t gid;
 };

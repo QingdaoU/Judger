@@ -29,7 +29,7 @@ class BaseTestCase(TestCase):
         flags = " "
         if extra_flags:
             flags += " ".join(extra_flags)
-        cmd = ("gcc {0} -g -O0 -o {1}" + flags).format(os.path.join(path, src_name), exe_path)
+        cmd = ("gcc {0} -g -O0 -static -o {1}" + flags).format(os.path.join(path, src_name), exe_path)
         if os.system(cmd):
             raise AssertionError("compile error, cmd: {0}".format(cmd))
         return exe_path
