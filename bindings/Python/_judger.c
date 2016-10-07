@@ -47,16 +47,16 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
             break;
         }
         if (!PyString_Check(next)) {
-            Py_DECREF(next);
+            // Py_DECREF(next);
             RaiseValueError("arg item must be a string");
         }
         _config.args[count] = PyString_AsString(next);
-        Py_DECREF(next);
+        // Py_DECREF(next);
         count++;
     }
     _config.args[count] = NULL;
-    Py_DECREF(args_list);
-    Py_DECREF(args_iter);
+    // Py_DECREF(args_list);
+    // Py_DECREF(args_iter);
 
     count = 0;
 
@@ -71,24 +71,24 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
             break;
         }
         if (!PyString_Check(next)) {
-            Py_DECREF(next);
+            // Py_DECREF(next);
             RaiseValueError("env item must be a string");
         }
         _config.env[count] = PyString_AsString(next);
-        Py_DECREF(next);
+        // Py_DECREF(next);
         count++;
     }
     _config.env[count] = NULL;
-    Py_DECREF(env_list);
-    Py_DECREF(env_iter);
+    // Py_DECREF(env_list);
+    // Py_DECREF(env_iter);
     
     if (PyString_Check(rule_path)) {
         _config.seccomp_rule_so_path = PyString_AsString(rule_path);
-        Py_DECREF(rule_path);
+        // Py_DECREF(rule_path);
     }
     else {
         if (rule_path == Py_None) {
-            Py_DECREF(rule_path);
+            // Py_DECREF(rule_path);
             _config.seccomp_rule_so_path = NULL;
         }
         else {
