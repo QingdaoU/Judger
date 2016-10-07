@@ -76,11 +76,5 @@ struct result {
 };
 
 
-typedef struct child_args {
-    FILE *log_fp;
-    struct config *_config;
-} child_args;
-
-
 void run(struct config *, struct result *);
 #endif //JUDGER_RUNNER_H

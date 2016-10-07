@@ -93,7 +93,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         }
         else {
             // fixme decref
-            RaiseValueError("seccomp_rule_so_path must be string or None");
+            RaiseValueError("seccomp_rule_name must be string or None");
         }
     }
 

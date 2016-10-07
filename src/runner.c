@@ -19,8 +19,6 @@
 #include "child.h"
 #include "logger.h"
 
-#define STACK_SIZE (32 * 1024 * 1024)
-
 void init_result(struct result *_result) {
     _result->error = SUCCESS;
     _result->cpu_time = _result->real_time = _result->signal = _result->exit_code = 0;
@@ -50,29 +48,20 @@ void run(struct config *_config, struct result *_result) {
         ERROR_EXIT(INVALID_CONFIG);
     }
 
-    // malloc stack for child process
-    char *stack = NULL;
-    stack = malloc(STACK_SIZE);
-    if (stack == NULL) {
-        ERROR_EXIT(CLONE_FAILED);
-    }
-
     // record current time
     struct timeval start, end;
     gettimeofday(&start, NULL);
 
-    // clone
-    child_args args;
-    args._config = _config;
-    args.log_fp = log_fp;
-
-    pid_t child_pid = clone(child_process, stack + STACK_SIZE, SIGCHLD, (void *) (&args));
+    pid_t child_pid = fork();
 
     // pid < 0 shows clone failed
     if (child_pid < 0) {
         ERROR_EXIT(CLONE_FAILED);
     }
-    else {
+    else if (child_pid == 0) {
+        child_process(log_fp, _config);
+    }
+    else if (child_pid > 0){
         // create new thread to monitor process running time
         pthread_t tid = 0;
         if (_config->max_real_time != UNLIMITED) {

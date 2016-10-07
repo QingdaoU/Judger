@@ -36,10 +36,8 @@ void close_file(FILE *fp, ...) {
 }
 
 
-int child_process(void *args) {
-    FILE *log_fp = ((child_args *) args)->log_fp;
+int child_process(FILE *log_fp, struct config *_config) {
     FILE *input_file = NULL, *output_file = NULL, *error_file = NULL;
-    struct config *_config = ((child_args *) args)->_config;
 
     // set memory limit
     if (_config->max_memory != UNLIMITED) {
@@ -132,7 +130,7 @@ int child_process(void *args) {
         CHILD_ERROR_EXIT(SETUID_FAILED);
     }
 
-    // load seccomp so
+    // load seccomp
     if (_config->seccomp_rule_name != NULL) {
         if (strcmp("c_cpp", _config->seccomp_rule_name) == 0) {
             if (c_cpp_seccomp_rules(_config) != SUCCESS) {
