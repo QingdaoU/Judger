@@ -135,4 +135,16 @@ PyMODINIT_FUNC init_judger(void) {
     PyModule_AddIntConstant(module, "RESULT_MEMORY_LIMIT_EXCEEDED", MEMORY_LIMIT_EXCEEDED);
     PyModule_AddIntConstant(module, "RESULT_RUNTIME_ERROR", RUNTIME_ERROR);
     PyModule_AddIntConstant(module, "RESULT_SYSTEM_ERROR", SYSTEM_ERROR);
+
+    PyModule_AddIntConstant(module, "ERROR_INVALID_CONFIG", INVALID_CONFIG);
+    PyModule_AddIntConstant(module, "ERROR_FORK_FAILED", FORK_FAILED);
+    PyModule_AddIntConstant(module, "ERROR_PTHREAD_FAILED", PTHREAD_FAILED);
+    PyModule_AddIntConstant(module, "ERROR_WAIT_FAILED", WAIT_FAILED);
+    PyModule_AddIntConstant(module, "ERROR_ROOT_REQUIRED", ROOT_REQUIRED);
+    PyModule_AddIntConstant(module, "ERROR_LOAD_SECCOMP_FAILED", LOAD_SECCOMP_FAILED);
+    PyModule_AddIntConstant(module, "ERROR_SETRLIMIT_FAILED", SETRLIMIT_FAILED);
+    PyModule_AddIntConstant(module, "ERROR_DUP2_FAILED", DUP2_FAILED);
+    PyModule_AddIntConstant(module, "ERROR_SETUID_FAILED", SETUID_FAILED);
+    PyModule_AddIntConstant(module, "ERROR_EXECVE_FAILED", EXECVE_FAILED);
+    PyModule_AddIntConstant(module, "ERROR_SPJ_ERROR", SPJ_ERROR);
 }

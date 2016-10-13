@@ -56,7 +56,7 @@ void run(struct config *_config, struct result *_result) {
 
     // pid < 0 shows clone failed
     if (child_pid < 0) {
-        ERROR_EXIT(CLONE_FAILED);
+        ERROR_EXIT(FORK_FAILED);
     }
     else if (child_pid == 0) {
         child_process(log_fp, _config);
