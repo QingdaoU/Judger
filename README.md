@@ -4,6 +4,8 @@
 
 OnlineJudge 判题沙箱
 
+本项目属于历史项目，最新代码请看`newnew`分支，相关文档请看 http://docs.onlinejudge.me
+
 ##Python api 使用方法
 
 见 demo 
