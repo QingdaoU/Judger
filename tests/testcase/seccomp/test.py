@@ -39,10 +39,17 @@ class SeccompTest(base.BaseTestCase):
         # without seccomp
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
 
-        # with seccomp
+        # with general seccomp
+        config["seccomp_rule_name"] = "general"
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], 31)
+
+        # with c_cpp seccomp
         config["seccomp_rule_name"] = "c_cpp"
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], 31)
 
     def test_execve(self):
         config = self.config
@@ -54,7 +61,36 @@ class SeccompTest(base.BaseTestCase):
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
         self.assertEqual("Helloworld\n", self.output_content(config["output_path"]))
 
-        # with seccomp
+        # with general seccomp
+        config["seccomp_rule_name"] = "general"
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], 31)
+
+        # with c_cpp seccomp
         config["seccomp_rule_name"] = "c_cpp"
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], 31)
+
+    def test_write_file(self):
+        config = self.config
+        config["max_memory"] = 1024 * 1024 * 1024
+        config["exe_path"] = self._compile_c("write_file.c")
+        config["output_path"] = config["error_path"] = self.output_path()
+        result = _judger.run(**config)
+        # without seccomp
+        self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
+        self.assertEqual("test", self.output_content("/tmp/fffffffffffffile.txt"))
+
+        # with general seccomp
+        config["seccomp_rule_name"] = "general"
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], 31)
+
+        # with c_cpp seccomp
+        config["seccomp_rule_name"] = "c_cpp"
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], 31)
