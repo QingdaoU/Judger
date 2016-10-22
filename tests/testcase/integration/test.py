@@ -271,3 +271,10 @@ class IntegrationTest(base.BaseTestCase):
         self.assertEqual(result["result"], _judger.RESULT_CPU_TIME_LIMIT_EXCEEDED)
         self.assertTrue(result["cpu_time"] >= 1950)
         self.assertTrue(result["real_time"] >= 1950)
+
+    def test_output_size(self):
+        config = self.config
+        config["exe_path"] = self._compile_c("output_size.c")
+        config["max_output_size"] = 1000 * 10
+        result = _judger.run(**config)
+        self.assertEqual(result["exit_code"], 2)
