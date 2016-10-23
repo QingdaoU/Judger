@@ -189,8 +189,10 @@ static int global_judge(lua_State* L) {
                 return luaL_error(L, "bad argument %s (item must be a string)", arg_mask[i].name);
             }
             *((char**)arg_refs[i] + table_size) = NULL;
+            break;
         case LUA_TNIL:
             *(char**)arg_refs[i] = NULL;
+            break;
         }
 
         lua_pop(L, 1);
