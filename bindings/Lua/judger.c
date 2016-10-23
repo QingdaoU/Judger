@@ -80,7 +80,7 @@ static int global_judge(lua_State* L);
 
 static const struct luaL_Reg judger[] = {
     {"getconfig", global_getconfig},
-    {"judge", global_judge},
+    {"run", global_judge},
     {NULL, NULL}
 };
 
@@ -121,13 +121,15 @@ static void destory_config(struct config* config) {
     }
 }
 
-static int lua_checkstringtable(lua_State* L, int index, char** dst, int max_size, int* dst_size) {
+static int lua_checkstringtable(lua_State* L, char** dst, int max_size, int* dst_size) {
     int table_index = lua_gettop(L);
     int table_size = 0;
 
     lua_pushnil(L);
     while (0 != lua_next(L, table_index)) {
         if (lua_type(L, -1) != LUA_TSTRING)
+            return 0;
+        if (lua_type(L, -2) != LUA_TNUMBER)
             return 0;
 
         if (table_size == max_size)
@@ -184,7 +186,7 @@ static int global_judge(lua_State* L) {
             *(char**)arg_refs[i] = _strdup(lua_tostring(L, -1));
             break;
         case LUA_TTABLE:
-            if (lua_checkstringtable(L, -1, (char**)arg_refs[i], 256 - 1, &table_size) == 0) {
+            if (lua_checkstringtable(L, (char**)arg_refs[i], 256 - 1, &table_size) == 0) {
                 destory_config(&config);
                 return luaL_error(L, "bad argument %s (item must be a string)", arg_mask[i].name);
             }
