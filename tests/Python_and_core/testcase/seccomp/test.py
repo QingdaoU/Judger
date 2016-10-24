@@ -27,7 +27,7 @@ class SeccompTest(base.BaseTestCase):
         self.workspace = self.init_workspace("integration")
 
     def _compile_c(self, src_name, extra_flags=None):
-        return super(SeccompTest, self)._compile_c("seccomp/" + src_name, extra_flags)
+        return super(SeccompTest, self)._compile_c("../../test_src/seccomp/" + src_name, extra_flags)
 
     def test_fork(self):
         config = self.config

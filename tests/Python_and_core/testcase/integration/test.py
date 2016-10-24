@@ -27,7 +27,7 @@ class IntegrationTest(base.BaseTestCase):
         self.workspace = self.init_workspace("integration")
         
     def _compile_c(self, src_name, extra_flags=None):
-        return super(IntegrationTest, self)._compile_c("integration/" + src_name, extra_flags)
+        return super(IntegrationTest, self)._compile_c("../../test_src/integration/" + src_name, extra_flags)
 
     def _compile_cpp(self, src_name):
         return super(IntegrationTest, self)._compile_cpp("integration/" + src_name)
@@ -254,7 +254,7 @@ class IntegrationTest(base.BaseTestCase):
     def test_gcc_random(self):
         config = self.config
         config["exe_path"] = "/usr/bin/gcc"
-        config["args"] = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "gcc_random.c"),
+        config["args"] = ["../test_src/integration/gcc_random.c",
                           "-o", os.path.join(self.workspace, "gcc_random")]
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_CPU_TIME_LIMIT_EXCEEDED)
@@ -265,7 +265,7 @@ class IntegrationTest(base.BaseTestCase):
         config = self.config
         config["exe_path"] = "/usr/bin/g++"
         config["max_memory"] = 1024 * 1024 * 1024
-        config["args"] = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "cpp_meta.cpp"),
+        config["args"] = ["../test_src/integration/cpp_meta.cpp",
                           "-o", os.path.join(self.workspace, "cpp_meta")]
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_CPU_TIME_LIMIT_EXCEEDED)
