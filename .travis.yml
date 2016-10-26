@@ -11,3 +11,5 @@ install:
     - cd ../bindings/Python && sudo python setup.py install
 script:
     - cd ../../tests/Python_and_core && sudo python test.py
+notifications:
+    slack: onlinejudgeteam:BzBz8UFgmS5crpiblof17K2W
