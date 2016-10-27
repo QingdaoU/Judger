@@ -18,8 +18,8 @@ Usage:
 #include <stdlib.h>
 #include <string.h>
 
-#include <lua5.3/lua.h>
-#include <lua5.3/lauxlib.h>
+#include <lua.h>
+#include <lauxlib.h>
 #include "../../src/runner.h"
 
 typedef struct ConfItem {
@@ -27,27 +27,27 @@ typedef struct ConfItem {
     int value;
 } ConfItem;
 static ConfItem conf_item[] = {
-    {"VERSION", VERSION},
-    {"UNLIMITED", UNLIMITED},
-    {"RESULT_WRONG_ANSWER", WRONG_ANSWER},
-    {"RESULT_SUCCESS", SUCCESS},
-    {"RESULT_CPU_TIME_LIMIT_EXCEEDED", CPU_TIME_LIMIT_EXCEEDED},
-    {"RESULT_REAL_TIME_LIMIT_EXCEEDED", REAL_TIME_LIMIT_EXCEEDED},
-    {"RESULT_MEMORY_LIMIT_EXCEEDED", MEMORY_LIMIT_EXCEEDED},
-    {"RESULT_RUNTIME_ERROR", RUNTIME_ERROR},
-    {"RESULT_SYSTEM_ERROR", SYSTEM_ERROR},
-    {"ERROR_INVALID_CONFIG", INVALID_CONFIG},
-    {"ERROR_FORK_FAILED", FORK_FAILED},
+    {"_VERSION", VERSION},
+    {"_UNLIMITED", UNLIMITED},
+    {"_RESULT_WRONG_ANSWER", WRONG_ANSWER},
+    {"_RESULT_SUCCESS", SUCCESS},
+    {"_RESULT_CPU_TIME_LIMIT_EXCEEDED", CPU_TIME_LIMIT_EXCEEDED},
+    {"_RESULT_REAL_TIME_LIMIT_EXCEEDED", REAL_TIME_LIMIT_EXCEEDED},
+    {"_RESULT_MEMORY_LIMIT_EXCEEDED", MEMORY_LIMIT_EXCEEDED},
+    {"_RESULT_RUNTIME_ERROR", RUNTIME_ERROR},
+    {"_RESULT_SYSTEM_ERROR", SYSTEM_ERROR},
+    {"_ERROR_INVALID_CONFIG", INVALID_CONFIG},
+    {"_ERROR_FORK_FAILED", FORK_FAILED},
 
-    {"ERROR_PTHREAD_FAILED", PTHREAD_FAILED},
-    {"ERROR_WAIT_FAILED", WAIT_FAILED},
-    {"ERROR_ROOT_REQUIRED", ROOT_REQUIRED},
-    {"ERROR_LOAD_SECCOMP_FAILED", LOAD_SECCOMP_FAILED},
-    {"ERROR_SETRLIMIT_FAILED", SETRLIMIT_FAILED},
-    {"ERROR_DUP2_FAILED", DUP2_FAILED},
-    {"ERROR_SETUID_FAILED", SETUID_FAILED},
-    {"ERROR_EXECVE_FAILED", EXECVE_FAILED},
-    {"ERROR_SPJ_ERROR", SPJ_ERROR}
+    {"_ERROR_PTHREAD_FAILED", PTHREAD_FAILED},
+    {"_ERROR_WAIT_FAILED", WAIT_FAILED},
+    {"_ERROR_ROOT_REQUIRED", ROOT_REQUIRED},
+    {"_ERROR_LOAD_SECCOMP_FAILED", LOAD_SECCOMP_FAILED},
+    {"_ERROR_SETRLIMIT_FAILED", SETRLIMIT_FAILED},
+    {"_ERROR_DUP2_FAILED", DUP2_FAILED},
+    {"_ERROR_SETUID_FAILED", SETUID_FAILED},
+    {"_ERROR_EXECVE_FAILED", EXECVE_FAILED},
+    {"_ERROR_SPJ_ERROR", SPJ_ERROR}
 };
 static const int conf_item_size = sizeof(conf_item) / sizeof(ConfItem);
 
@@ -75,11 +75,9 @@ static ArgMask arg_mask[] = {
 };
 static const int arg_mask_size = sizeof(arg_mask) / sizeof(ArgMask);
 
-static int global_getconfig(lua_State* L);
 static int global_judge(lua_State* L);
 
 static const struct luaL_Reg judger[] = {
-    {"getconfig", global_getconfig},
     {"run", global_judge},
     {NULL, NULL}
 };
@@ -89,20 +87,6 @@ static char* _strdup(const char* s) {
     if (s && (t = (char*)malloc(strlen(s) + 1)))
         strcpy(t, s);
     return t;
-}
-
-static int global_getconfig(lua_State* L) {
-    int i = 0;
-
-    lua_createtable(L, 0, conf_item_size);
-    for (; i < conf_item_size; ++i) {
-        lua_pushstring(L, conf_item[i].name);
-        lua_pushnumber(L, conf_item[i].value);
-        lua_rawset(L, -3);
-    }
-    assert(lua_gettop(L) == 1 && lua_type(L, -1) == LUA_TTABLE); //One table left
-
-    return 1;
 }
 
 static void destory_config(struct config* config) {
@@ -218,6 +202,19 @@ static int global_judge(lua_State* L) {
 
 
 int luaopen_judger(lua_State* L) {
+    int i = 0;
+
+#ifdef LUA51
+    luaL_register(L, "judger", judger);
+#else
     luaL_newlib(L, judger);
+#endif
+
+    for (; i < conf_item_size; ++i) {
+        lua_pushstring(L, conf_item[i].name);
+        lua_pushnumber(L, conf_item[i].value);
+        lua_rawset(L, -3);
+    }
+
     return 1;
 }
