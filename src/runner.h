@@ -19,6 +19,9 @@
         return; \
     }
 
+#define ARGS_MAX_NUMBER 256
+#define ENV_MAX_NUMBER 256
+
 
 enum {
     SUCCESS = 0,
@@ -46,8 +49,8 @@ struct config {
     char *input_path;
     char *output_path;
     char *error_path;
-    char *args[256];
-    char *env[256];
+    char *args[ARGS_MAX_NUMBER];
+    char *env[ENV_MAX_NUMBER];
     char *log_path;
     char *seccomp_rule_name;
     uid_t uid;

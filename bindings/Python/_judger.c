@@ -18,7 +18,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
 
     PyObject *args_list, *env_list, *rule_name, *args_iter, *env_iter, *next;
 
-    int count = 0;
+    int count = 0, i = 0;
 
     static char *kwargs_list[] = {"max_cpu_time", "max_real_time", "max_memory",
                                   "max_process_number", "max_output_size",
@@ -41,7 +41,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     }
     _config.args[count++] = _config.exe_path;
     args_iter = PyObject_GetIter(args_list);
-    while (1) {
+    for(i = 0;i < ARGS_MAX_NUMBER;i++) {
         next = PyIter_Next(args_iter);
         if (!next) {
             break;
@@ -65,7 +65,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         RaiseValueError("env must be a list");
     }
     env_iter = PyObject_GetIter(env_list);
-    while (1) {
+    for(i = 0;i < ENV_MAX_NUMBER; i++) {
         next = PyIter_Next(env_iter);
         if (!next) {
             break;

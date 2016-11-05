@@ -81,7 +81,7 @@ void run(struct config *_config, struct result *_result) {
         // wait for child process to terminate
         // on success, returns the process ID of the child whose state has changed;
         // On error, -1 is returned.
-        if (wait4(child_pid, &status, 0, &resource_usage) == -1) {
+        if (wait4(child_pid, &status, WSTOPPED, &resource_usage) == -1) {
             kill_pid(child_pid);
             ERROR_EXIT(WAIT_FAILED);
         }
