@@ -34,20 +34,20 @@ class SeccompTest(base.BaseTestCase):
         config["max_memory"] = 1024 * 1024 * 1024
         config["exe_path"] = self._compile_c("fork.c")
         config["output_path"] = config["error_path"] = self.output_path()
-        result = _judger.run(**config)
+        result = self.judger_run(**config)
 
         # without seccomp
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
 
         # with general seccomp
         config["seccomp_rule_name"] = "general"
-        result = _judger.run(**config)
+        result = self.judger_run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
         self.assertEqual(result["signal"], 31)
 
         # with c_cpp seccomp
         config["seccomp_rule_name"] = "c_cpp"
-        result = _judger.run(**config)
+        result = self.judger_run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
         self.assertEqual(result["signal"], 31)
 
@@ -56,20 +56,20 @@ class SeccompTest(base.BaseTestCase):
         config["max_memory"] = 1024 * 1024 * 1024
         config["exe_path"] = self._compile_c("execve.c")
         config["output_path"] = config["error_path"] = self.output_path()
-        result = _judger.run(**config)
+        result = self.judger_run(**config)
         # without seccomp
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
         self.assertEqual("Helloworld\n", self.output_content(config["output_path"]))
 
         # with general seccomp
         config["seccomp_rule_name"] = "general"
-        result = _judger.run(**config)
+        result = self.judger_run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
         self.assertEqual(result["signal"], 31)
 
         # with c_cpp seccomp
         config["seccomp_rule_name"] = "c_cpp"
-        result = _judger.run(**config)
+        result = self.judger_run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
         self.assertEqual(result["signal"], 31)
 
@@ -78,19 +78,19 @@ class SeccompTest(base.BaseTestCase):
         config["max_memory"] = 1024 * 1024 * 1024
         config["exe_path"] = self._compile_c("write_file.c")
         config["output_path"] = config["error_path"] = self.output_path()
-        result = _judger.run(**config)
+        result = self.judger_run(**config)
         # without seccomp
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
         self.assertEqual("test", self.output_content("/tmp/fffffffffffffile.txt"))
 
         # with general seccomp
         config["seccomp_rule_name"] = "general"
-        result = _judger.run(**config)
+        result = self.judger_run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
         self.assertEqual(result["signal"], 31)
 
         # with c_cpp seccomp
         config["seccomp_rule_name"] = "c_cpp"
-        result = _judger.run(**config)
+        result = self.judger_run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
         self.assertEqual(result["signal"], 31)

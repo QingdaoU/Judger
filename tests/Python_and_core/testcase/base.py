@@ -1,6 +1,7 @@
 # coding=utf-8
 import os
 import shutil
+import _judger
 from unittest import TestCase
 
 
@@ -54,3 +55,6 @@ class BaseTestCase(TestCase):
     def output_content(self, path):
         with open(path, "r") as f:
             return f.read()
+
+    def judger_run(self, **config):
+        return _judger.run(**config)

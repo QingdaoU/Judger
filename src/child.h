@@ -12,6 +12,6 @@
     }
 
 
-int child_process(FILE *log_fp, struct config *_config);
+int child_process(FILE *log_fp, struct config *_config, int, long *);
 
 #endif //JUDGER_CHILD_H

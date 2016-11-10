@@ -36,8 +36,9 @@ void close_file(FILE *fp, ...) {
 }
 
 
-int child_process(FILE *log_fp, struct config *_config) {
+int child_process(FILE *log_fp, struct config *_config, int pipe_fd, long *pipe_memory) {
     FILE *input_file = NULL, *output_file = NULL, *error_file = NULL;
+    struct rusage child_resource_usage;
 
     // set memory limit
     if (_config->max_memory != UNLIMITED) {
@@ -128,6 +129,15 @@ int child_process(FILE *log_fp, struct config *_config) {
     // set uid
     if (_config->uid != -1 && setuid(_config->uid) == -1) {
         CHILD_ERROR_EXIT(SETUID_FAILED);
+    }
+
+    if (getrusage(RUSAGE_SELF, &child_resource_usage) != 0) {
+        CHILD_ERROR_EXIT(PIPE_FAILED);
+    }
+    *pipe_memory = child_resource_usage.ru_maxrss;
+
+    if (write(pipe_fd, pipe_memory, sizeof(*pipe_memory)) < 0) {
+        CHILD_ERROR_EXIT(PIPE_FAILED);
     }
 
     // load seccomp
