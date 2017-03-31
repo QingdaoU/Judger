@@ -2,7 +2,7 @@
 
 CC           = gcc
 LDFLAGS     ?= -pthread -lseccomp -fPIC -shared
-LUAVER      ?= 5.1
+LUAVER      ?= 5.3
 LUAVERPURE  ?= $(subst .,,${LUAVER})
 CFLAGS      ?= -Wall -Werror -O3 -std=c99 -fPIC -I/usr/include/lua${LUAVER} -DLUA${LUAVERPURE}
 

@@ -97,11 +97,12 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         }
     }
 
-    void *handler = dlopen("/usr/lib/judger/libjudger.so", RTLD_LAZY);
+    void *handler = dlopen("/usr/lib/judger/libjudger.so", RTLD_LAZY|RTLD_GLOBAL);
     int (*judger_run)(struct config *, struct result *);
 
     if (!handler) {
         // fixme decref
+	fprintf(stderr, "Line 105:%s\n", dlerror());
         RaiseValueError("dlopen error")
     }
     judger_run = dlsym(handler, "run");
