@@ -11,6 +11,10 @@
         return NULL; \
     }
 
+#if PY_MAJOR_VERSION >= 3
+  #define PyString_Check PyUnicode_Check
+  #define PyString_AsString(str) str
+#endif
 
 static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     struct config _config;
@@ -81,7 +85,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     _config.env[count] = NULL;
     // Py_DECREF(env_list);
     // Py_DECREF(env_iter);
-    
+
     if (PyString_Check(rule_name)) {
         _config.seccomp_rule_name = PyString_AsString(rule_name);
         // Py_DECREF(rule_path);
@@ -119,13 +123,36 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
 
 
 static PyMethodDef judger_methods[] = {
+#if PY_MAJOR_VERSION >= 3
+    {"run", (PyCFunction) judger_run, METH_VARARGS | METH_KEYWORDS, NULL},
+#else
     {"run", (PyCFunction) judger_run, METH_KEYWORDS, NULL},
+#endif
     {NULL, NULL, 0, NULL}
 };
 
 
-PyMODINIT_FUNC init_judger(void) {
+static PyObject* moduleinit(void) {
+#if PY_MAJOR_VERSION >= 3
+    static struct PyModuleDef judger_def = {
+        PyModuleDef_HEAD_INIT,
+        "_judger",                       /* m_name */
+        NULL,                            /* m_doc */
+        -1,                              /* m_size */
+        judger_methods,                  /* m_methods */
+        NULL,                            /* m_reload */
+        NULL,                            /* m_traverse */
+        NULL,                            /* m_clear */
+        NULL,                            /* m_free */
+    };
+#endif
+
+#if PY_MAJOR_VERSION >= 3
+    PyObject *module = PyModule_Create(&judger_def);
+#else
     PyObject *module = Py_InitModule3("_judger", judger_methods, NULL);
+#endif
+
     PyModule_AddIntConstant(module, "VERSION", VERSION);
     PyModule_AddIntConstant(module, "UNLIMITED", UNLIMITED);
     PyModule_AddIntConstant(module, "RESULT_WRONG_ANSWER", WRONG_ANSWER);
@@ -147,4 +174,18 @@ PyMODINIT_FUNC init_judger(void) {
     PyModule_AddIntConstant(module, "ERROR_SETUID_FAILED", SETUID_FAILED);
     PyModule_AddIntConstant(module, "ERROR_EXECVE_FAILED", EXECVE_FAILED);
     PyModule_AddIntConstant(module, "ERROR_SPJ_ERROR", SPJ_ERROR);
+
+    return module;
 }
+
+#if PY_MAJOR_VERSION >= 3
+    PyMODINIT_FUNC PyInit__judger(void)
+    {
+        return moduleinit();
+    }
+#else
+    PyMODINIT_FUNC init_judger(void)
+    {
+        moduleinit();
+    }
+#endif
