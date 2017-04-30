@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <sys/types.h>
-#include <python2.7/Python.h>
+#include <Python.h>
 #include "../../src/runner.h"
 
 
@@ -13,7 +13,7 @@
 
 #if PY_MAJOR_VERSION >= 3
   #define PyString_Check PyUnicode_Check
-  #define PyString_AsString(str) str
+  #define PyString_AsString PyUnicode_AsUTF8
 #endif
 
 static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
