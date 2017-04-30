@@ -1,6 +1,8 @@
 language: python
+dist: trusty
 python:
     - "2.7"
+    - "3.5"
 sudo: required
 before_install:
     - sudo apt-get -qq update
@@ -8,8 +10,8 @@ before_install:
 install:
     - mkdir build && cd build
     - cmake .. && make && sudo make install
-    - cd ../bindings/Python && sudo python setup.py install
+    - cd ../bindings/Python && sudo `which python` setup.py install
 script:
-    - cd ../../tests/Python_and_core && sudo python test.py
+    - cd ../../tests/Python_and_core && sudo `which python` test.py
 notifications:
     slack: onlinejudgeteam:BzBz8UFgmS5crpiblof17K2W

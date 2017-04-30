@@ -1,4 +1,6 @@
 # coding=utf-8
+from __future__ import print_function
+import sys
 import _judger
 import signal
 import os
@@ -8,7 +10,7 @@ from .. import base
 
 class IntegrationTest(base.BaseTestCase):
     def setUp(self):
-        print "Running", self._testMethodName
+        print("Running", self._testMethodName)
         self.config = {"max_cpu_time": 1000,
                        "max_real_time": 3000,
                        "max_memory": 1024 * 1024 * 128,
@@ -67,11 +69,15 @@ class IntegrationTest(base.BaseTestCase):
                         args=["1234", None], env=["a=b"], log_path="1.log",
                         seccomp_rule_name="1.so", uid=0, gid=0)
 
+        if sys.version_info >= (3, 5):
+            args = ["哈哈哈".encode("utf-8")]
+        else:
+            args = [u"哈哈哈"]
         with self.assertRaisesRegexp(ValueError, "arg item must be a string"):
             _judger.run(max_cpu_time=1000, max_real_time=2000, max_memory=1000000000,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
-                        args=[u"哈哈哈"], env=["a=b"], log_path="1.log",
+                        args=args, env=["a="], log_path="1.log",
                         seccomp_rule_name="1.so", uid=0, gid=0)
 
     def test_env_must_be_list(self):
@@ -104,11 +110,15 @@ class IntegrationTest(base.BaseTestCase):
                         args=["1234"], env=["a=b", None], log_path="1.log",
                         seccomp_rule_name="1.so", uid=0, gid=0)
 
+        if sys.version_info >= (3, 5):
+            env = ["哈哈哈".encode("utf-8")]
+        else:
+            env = [u"哈哈哈"]
         with self.assertRaisesRegexp(ValueError, "env item must be a string"):
             _judger.run(max_cpu_time=1000, max_real_time=2000, max_memory=1000000000,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
                         input_path="1.in", output_path="1.out", error_path="1.out",
-                        args=["1234"], env=[u"哈哈哈"], log_path="1.log",
+                        args=["1234"], env=env, log_path="1.log",
                         seccomp_rule_name="1.so", uid=0, gid=0)
 
     def test_seccomp_rule_can_be_none(self):
