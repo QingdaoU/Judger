@@ -42,6 +42,7 @@ void run(struct config *_config, struct result *_result) {
     // check args
     if ((_config->max_cpu_time < 1 && _config->max_cpu_time != UNLIMITED) ||
         (_config->max_real_time < 1 && _config->max_real_time != UNLIMITED) ||
+        (_config->max_stack < 1) ||
         (_config->max_memory < 1 && _config->max_memory != UNLIMITED) ||
         (_config->max_process_number < 1 && _config->max_process_number != UNLIMITED) ||
         (_config->max_output_size < 1 && _config->max_output_size != UNLIMITED)) {

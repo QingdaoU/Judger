@@ -24,14 +24,16 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
 
     int count = 0, i = 0;
 
-    static char *kwargs_list[] = {"max_cpu_time", "max_real_time", "max_memory",
+    static char *kwargs_list[] = {"max_cpu_time", "max_real_time",
+                                  "max_memory", "max_stack",
                                   "max_process_number", "max_output_size",
                                   "exe_path", "input_path", "output_path",
                                   "error_path", "args", "env", "log_path",
                                   "seccomp_rule_name", "uid", "gid", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iililssssOOsOii", kwargs_list,
-                                     &(_config.max_cpu_time), &(_config.max_real_time), &(_config.max_memory),
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iillilssssOOsOii", kwargs_list,
+                                     &(_config.max_cpu_time), &(_config.max_real_time),
+                                     &(_config.max_memory), &(_config.max_stack),
                                      &(_config.max_process_number), &(_config.max_output_size),
                                      &(_config.exe_path), &(_config.input_path), &(_config.output_path),
                                      &(_config.error_path), &args_list, &env_list, &(_config.log_path),

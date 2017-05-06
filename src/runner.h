@@ -43,6 +43,7 @@ struct config {
     int max_cpu_time;
     int max_real_time;
     long max_memory;
+    long max_stack;
     int max_process_number;
     long max_output_size;
     char *exe_path;
