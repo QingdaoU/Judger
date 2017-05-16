@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import print_function
 import _judger
 import signal
 import os
@@ -8,10 +9,11 @@ from .. import base
 
 class SeccompTest(base.BaseTestCase):
     def setUp(self):
-        print "Running", self._testMethodName
+        print("Running", self._testMethodName)
         self.config = {"max_cpu_time": 1000,
                        "max_real_time": 3000,
                        "max_memory": 1024 * 1024 * 128,
+                       "max_stack": 32 * 1024 * 1024,
                        "max_process_number": 10,
                        "max_output_size": 1024 * 1024,
                        "exe_path": "/bin/ls",

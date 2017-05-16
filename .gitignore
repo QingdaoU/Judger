@@ -6,3 +6,4 @@ build/
 *.so
 __pycache__
 *.pyc
+cmake-build-debug/

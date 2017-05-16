@@ -1,4 +1,4 @@
-#define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 #define _POSIX_SOURCE
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -39,6 +39,12 @@ void close_file(FILE *fp, ...) {
 int child_process(FILE *log_fp, struct config *_config, int pipe_fd, long *pipe_memory) {
     FILE *input_file = NULL, *output_file = NULL, *error_file = NULL;
     struct rusage child_resource_usage;
+
+    struct rlimit max_stack;
+    max_stack.rlim_cur = max_stack.rlim_max = (rlim_t) (_config->max_stack);
+    if (setrlimit(RLIMIT_STACK, &max_stack) != 0) {
+        CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
+    }
 
     // set memory limit
     if (_config->max_memory != UNLIMITED) {

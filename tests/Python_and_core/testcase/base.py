@@ -1,5 +1,7 @@
 # coding=utf-8
+from __future__ import print_function
 import os
+import random
 import shutil
 import _judger
 from unittest import TestCase
@@ -22,7 +24,7 @@ class BaseTestCase(TestCase):
         return workspace
 
     def rand_str(self):
-        return ''.join(map(lambda xx:(hex(ord(xx))[2:]), os.urandom(16)))
+        return "".join([random.choice("123456789abcdef") for _ in range(12)])
 
     def _compile_c(self, src_name, extra_flags=None):
         path = os.path.dirname(os.path.abspath(__file__))
