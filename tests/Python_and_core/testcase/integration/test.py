@@ -42,7 +42,6 @@ class IntegrationTest(base.BaseTestCase):
 
     def test_args_must_be_list(self):
         with self.assertRaisesRegexp(ValueError, "args must be a list"):
-            self.judger_run(max_cpu_time=1000, max_real_time=2000, max_memory=1000000000,
             _judger.run(max_cpu_time=1000, max_real_time=2000,
                         max_memory=1024 * 1024 * 128, max_stack=32 * 1024 * 1024,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
@@ -154,7 +153,6 @@ class IntegrationTest(base.BaseTestCase):
         config["input_path"] = self.make_input("judger_test")
         config["output_path"] = config["error_path"] = self.output_path()
         result = self.judger_run(**config)
-        print result
         output = "judger_test\nHello world"
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
         self.assertEqual(output, self.output_content(config["output_path"]))
@@ -206,7 +204,6 @@ class IntegrationTest(base.BaseTestCase):
         config["max_memory"] = 64 * 1024 * 1024
         config["exe_path"] = self._compile_c("memory1.c")
         result = self.judger_run(**config)
-        print result
         # malloc succeeded
         self.assertTrue(result["memory"] > 80 * 1024 * 1024)
         self.assertEqual(result["result"], _judger.RESULT_MEMORY_LIMIT_EXCEEDED)
@@ -227,7 +224,6 @@ class IntegrationTest(base.BaseTestCase):
         config["max_memory"] = 512 * 1024 * 1024
         config["exe_path"] = self._compile_c("memory3.c")
         result = self.judger_run(**config)
-        print result
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
         self.assertTrue(result["memory"] >= 102400000 * 4)
 
