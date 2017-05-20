@@ -32,6 +32,9 @@ int c_cpp_seccomp_rules(struct config *_config) {
     if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), 1, SCMP_A0(SCMP_CMP_LE, 2)) != 0) {
        return LOAD_SECCOMP_FAILED;
     }
+    if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(writev), 1, SCMP_A0(SCMP_CMP_LE, 2)) != 0) {
+        return LOAD_SECCOMP_FAILED;
+    }
     if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(lseek), 1, SCMP_A0(SCMP_CMP_LE, 2)) != 0) {
        return LOAD_SECCOMP_FAILED;
     }

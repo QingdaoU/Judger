@@ -33,7 +33,7 @@ class IntegrationTest(base.BaseTestCase):
         return super(IntegrationTest, self)._compile_c("../../test_src/integration/" + src_name, extra_flags)
 
     def _compile_cpp(self, src_name):
-        return super(IntegrationTest, self)._compile_cpp("integration/" + src_name)
+        return super(IntegrationTest, self)._compile_cpp("../../test_src/integration/" + src_name)
 
     def test_args_validation(self):
         with self.assertRaisesRegexp(ValueError, "Invalid args and kwargs"):
@@ -315,3 +315,13 @@ class IntegrationTest(base.BaseTestCase):
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
         self.assertEqual("big stack", self.output_content(config["output_path"]))
+
+    def test_writev(self):
+        config = self.config
+        config["exe_path"] = self._compile_cpp("writev.cpp")
+        config["seccomp_rule_name"] = "c_cpp"
+        config["input_path"] = self.make_input("111" * 10000 + "\n")
+        config["output_path"] = config["error_path"] = self.output_path()
+
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
