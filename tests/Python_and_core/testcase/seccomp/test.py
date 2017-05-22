@@ -80,3 +80,10 @@ class SeccompTest(base.BaseTestCase):
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
         self.assertEqual(result["signal"], 31)
+
+    def test_sysinfo(self):
+        config = self.base_config
+        config["exe_path"] = self._compile_c("sysinfo.c")
+        result = _judger.run(**config)
+
+        self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
