@@ -260,13 +260,12 @@ class IntegrationTest(base.BaseTestCase):
 
     def test_gcc_random(self):
         config = self.base_config
+        config["max_memory"] = _judger.UNLIMITED
         config["exe_path"] = "/usr/bin/gcc"
         config["args"] = ["../test_src/integration/gcc_random.c",
                           "-o", os.path.join(self.workspace, "gcc_random")]
         result = _judger.run(**config)
-        self.assertEqual(result["result"], _judger.RESULT_CPU_TIME_LIMIT_EXCEEDED)
-        self.assertTrue(result["cpu_time"] >= 1950)
-        self.assertTrue(result["real_time"] >= 1950)
+        self.assertTrue(result["real_time"] >= 2000)
 
     def test_cpp_meta(self):
         config = self.base_config
@@ -276,8 +275,8 @@ class IntegrationTest(base.BaseTestCase):
                           "-o", os.path.join(self.workspace, "cpp_meta")]
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_CPU_TIME_LIMIT_EXCEEDED)
-        self.assertTrue(result["cpu_time"] >= 1950)
-        self.assertTrue(result["real_time"] >= 1950)
+        self.assertTrue(result["cpu_time"] > 1500)
+        self.assertTrue(result["real_time"] >= 2000)
 
     def test_output_size(self):
         config = self.base_config
