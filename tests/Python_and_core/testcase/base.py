@@ -3,6 +3,7 @@ from __future__ import print_function
 import os
 import random
 import shutil
+import copy
 from unittest import TestCase
 
 
@@ -56,3 +57,23 @@ class BaseTestCase(TestCase):
     def output_content(self, path):
         with open(path, "r") as f:
             return f.read()
+
+    @property
+    def base_config(self):
+        config = {"max_cpu_time": 1000,
+                  "max_real_time": 3000,
+                  "max_memory": 128 * 1024 * 1024,
+                  "max_stack": 32 * 1024 * 1024,
+                  "max_process_number": 10,
+                  "max_output_size": 1024 * 1024,
+                  "exe_path": "/bin/ls",
+                  "input_path": "/dev/null",
+                  "output_path": "/dev/null",
+                  "error_path": "/dev/null",
+                  "args": [],
+                  "env": ["env=judger_test", "test=judger"],
+                  "log_path": "judger_test.log",
+                  "seccomp_rule_name": None,
+                  "uid": 0,
+                  "gid": 0}
+        return config
