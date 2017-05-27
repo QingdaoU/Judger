@@ -2,6 +2,7 @@
 from __future__ import print_function
 import _judger
 import signal
+import shutil
 import os
 
 from .. import base
@@ -17,7 +18,6 @@ class SeccompTest(base.BaseTestCase):
 
     def test_fork(self):
         config = self.base_config
-        config["max_memory"] = 1024 * 1024 * 1024
         config["exe_path"] = self._compile_c("fork.c")
         config["output_path"] = config["error_path"] = self.output_path()
         result = _judger.run(**config)
@@ -29,17 +29,16 @@ class SeccompTest(base.BaseTestCase):
         config["seccomp_rule_name"] = "general"
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
-        self.assertEqual(result["signal"], 31)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
 
         # with c_cpp seccomp
         config["seccomp_rule_name"] = "c_cpp"
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
-        self.assertEqual(result["signal"], 31)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
 
     def test_execve(self):
         config = self.base_config
-        config["max_memory"] = 1024 * 1024 * 1024
         config["exe_path"] = self._compile_c("execve.c")
         config["output_path"] = config["error_path"] = self.output_path()
         result = _judger.run(**config)
@@ -51,35 +50,60 @@ class SeccompTest(base.BaseTestCase):
         config["seccomp_rule_name"] = "general"
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
-        self.assertEqual(result["signal"], 31)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
 
         # with c_cpp seccomp
         config["seccomp_rule_name"] = "c_cpp"
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
-        self.assertEqual(result["signal"], 31)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
 
     def test_write_file(self):
         config = self.base_config
-        config["max_memory"] = 1024 * 1024 * 1024
         config["exe_path"] = self._compile_c("write_file.c")
         config["output_path"] = config["error_path"] = self.output_path()
+        path = os.path.join(self.workspace, "file1.txt")
+        config["args"] = [path, "w"]
         result = _judger.run(**config)
         # without seccomp
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
-        self.assertEqual("test", self.output_content("/tmp/fffffffffffffile.txt"))
+        self.assertEqual("", self.output_content(path))
 
         # with general seccomp
         config["seccomp_rule_name"] = "general"
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
-        self.assertEqual(result["signal"], 31)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
 
         # with c_cpp seccomp
         config["seccomp_rule_name"] = "c_cpp"
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
-        self.assertEqual(result["signal"], 31)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
+
+    def test_read_write_file(self):
+        config = self.base_config
+        config["exe_path"] = self._compile_c("write_file.c")
+        config["output_path"] = config["error_path"] = self.output_path()
+        path = os.path.join(self.workspace, "file2.txt")
+        config["args"] = [path, "w+"]
+        result = _judger.run(**config)
+        print(result)
+        # without seccomp
+        self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
+        self.assertEqual("", self.output_content(path))
+
+        # with general seccomp
+        config["seccomp_rule_name"] = "general"
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
+
+        # with c_cpp seccomp
+        config["seccomp_rule_name"] = "c_cpp"
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
 
     def test_sysinfo(self):
         config = self.base_config
@@ -87,3 +111,4 @@ class SeccompTest(base.BaseTestCase):
         result = _judger.run(**config)
 
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
+

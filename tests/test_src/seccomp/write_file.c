@@ -1,10 +1,10 @@
 #include <stdio.h>
-int main()
+#include <errno.h>
+int main(int argc, char *argv[])
 {
-    FILE *f = fopen("/tmp/fffffffffffffile.txt", "w");
+    FILE *f = fopen(argv[1], argv[2]);
     if (f == NULL) {
-        return 1;
+        return errno;
     }
-    fprintf(f, "%s", "test");
     return 0;
 }
