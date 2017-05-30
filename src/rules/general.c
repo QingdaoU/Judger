@@ -10,14 +10,7 @@
 int general_seccomp_rules(struct config *_config) {
     int syscalls_blacklist[] = {SCMP_SYS(socket), SCMP_SYS(clone),
                                 SCMP_SYS(fork), SCMP_SYS(vfork),
-                                SCMP_SYS(writev), SCMP_SYS(kill),
-                                SCMP_SYS(chdir), SCMP_SYS(fchdir),
-                                SCMP_SYS(rename), SCMP_SYS(chmod),
-                                SCMP_SYS(fchmod), SCMP_SYS(chown),
-                                SCMP_SYS(fchown), SCMP_SYS(lchown),
-                                SCMP_SYS(setuid), SCMP_SYS(setgid),
-                                SCMP_SYS(capset), SCMP_SYS(mount),
-                                SCMP_SYS(sethostname)};
+                                SCMP_SYS(kill)};
     int syscalls_blacklist_length = sizeof(syscalls_blacklist) / sizeof(int);
     scmp_filter_ctx ctx = NULL;
     // load seccomp rules
