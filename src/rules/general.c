@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <seccomp.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include "../runner.h"
 
@@ -7,14 +10,7 @@
 int general_seccomp_rules(struct config *_config) {
     int syscalls_blacklist[] = {SCMP_SYS(socket), SCMP_SYS(clone),
                                 SCMP_SYS(fork), SCMP_SYS(vfork),
-                                SCMP_SYS(writev), SCMP_SYS(kill),
-                                SCMP_SYS(chdir), SCMP_SYS(fchdir),
-                                SCMP_SYS(rename), SCMP_SYS(chmod),
-                                SCMP_SYS(fchmod), SCMP_SYS(chown),
-                                SCMP_SYS(fchown), SCMP_SYS(lchown),
-                                SCMP_SYS(setuid), SCMP_SYS(setgid),
-                                SCMP_SYS(capset), SCMP_SYS(mount),
-                                SCMP_SYS(sethostname)};
+                                SCMP_SYS(kill)};
     int syscalls_blacklist_length = sizeof(syscalls_blacklist) / sizeof(int);
     scmp_filter_ctx ctx = NULL;
     // load seccomp rules
@@ -31,8 +27,11 @@ int general_seccomp_rules(struct config *_config) {
     if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_NE, (scmp_datum_t)(_config->exe_path))) != 0) {
         return LOAD_SECCOMP_FAILED;
     }
-    // only fd 0 1 2 are allowed
-    if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(write), 1, SCMP_A0(SCMP_CMP_GT, 2)) != 0) {
+    // do not allow "w" and "rw"
+    if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(open), 1, SCMP_CMP(1, SCMP_CMP_MASKED_EQ, O_WRONLY, O_WRONLY)) != 0) {
+        return LOAD_SECCOMP_FAILED;
+    }
+    if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(open), 1, SCMP_CMP(1, SCMP_CMP_MASKED_EQ, O_RDWR, O_RDWR)) != 0) {
         return LOAD_SECCOMP_FAILED;
     }
     if (seccomp_load(ctx) != 0) {

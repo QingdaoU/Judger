@@ -16,12 +16,17 @@ class RunResult(object):
 
 
 class BaseTestCase(TestCase):
+    BAD_SYSTEM_CALL = 31
+
     def init_workspace(self, language):
         base_workspace = "/tmp"
         workspace = os.path.join(base_workspace, language)
         shutil.rmtree(workspace, ignore_errors=True)
-        os.system("mkdir -p " + workspace)
+        os.makedirs(workspace)
         return workspace
+
+    def tearDown(self):
+        shutil.rmtree(self.workspace, ignore_errors=True)
 
     def rand_str(self):
         return "".join([random.choice("123456789abcdef") for _ in range(12)])
