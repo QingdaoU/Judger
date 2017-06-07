@@ -157,6 +157,10 @@ int child_process(void *clone_args){
             LOG_FATAL(log_fp, "load dup2 rule failed");
             ERROR(log_fp, LOAD_SECCOMP_FAILED);
         }
+        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(writev), 1, SCMP_A0(SCMP_CMP_LE, 2)) != 0) {
+            LOG_FATAL(log_fp, "load dup2 rule failed");
+            ERROR(log_fp, LOAD_SECCOMP_FAILED);
+        }
         if (seccomp_load(ctx) != 0) {
             LOG_FATAL(log_fp, "seccomp load failed");
             ERROR(log_fp, LOAD_SECCOMP_FAILED);
