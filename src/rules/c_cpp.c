@@ -15,7 +15,7 @@ int c_cpp_seccomp_rules(struct config *_config) {
                                 SCMP_SYS(access), SCMP_SYS(exit_group),
                                 SCMP_SYS(close), SCMP_SYS(readlink),
                                 SCMP_SYS(sysinfo), SCMP_SYS(write),
-                                SCMP_SYS(writev)};
+                                SCMP_SYS(writev), SCMP_SYS(lseek)};
 
     int syscalls_whitelist_length = sizeof(syscalls_whitelist) / sizeof(int);
     scmp_filter_ctx ctx = NULL;
