@@ -108,7 +108,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
     judger_run = dlsym(handler, "run");
     judger_run(&_config, &_result);
 
-    return Py_BuildValue("{s:l, s:l, s:i, s:i, s:i, s:i, s:i}",
+    return Py_BuildValue("{s:i, s:l, s:i, s:i, s:i, s:i, s:i}",
                          "cpu_time", _result.cpu_time,
                          "memory", _result.memory,
                          "real_time", _result.real_time,
