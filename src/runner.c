@@ -86,6 +86,9 @@ void run(struct config *_config, struct result *_result) {
             kill_pid(child_pid);
             ERROR_EXIT(WAIT_FAILED);
         }
+        // get end time
+        gettimeofday(&end, NULL);
+        _result->real_time = (int) (end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
 
         // process exited, we may need to cancel timeout killer thread
         if (_config->max_real_time != UNLIMITED) {
@@ -98,10 +101,6 @@ void run(struct config *_config, struct result *_result) {
         _result->cpu_time = (int) (resource_usage.ru_utime.tv_sec * 1000 +
                                   resource_usage.ru_utime.tv_usec / 1000);
         _result->memory = resource_usage.ru_maxrss * 1024;
-
-        // get end time
-        gettimeofday(&end, NULL);
-        _result->real_time = (int) (end.tv_sec * 1000 + end.tv_usec / 1000 - start.tv_sec * 1000 - start.tv_usec / 1000);
 
         if (_result->exit_code != 0) {
             _result->result = RUNTIME_ERROR;

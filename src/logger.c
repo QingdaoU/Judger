@@ -48,8 +48,8 @@ void log_write(int level, const char *source_filename, const int line, const FIL
     va_end(ap);
 
     int count = snprintf(buffer, log_buffer_size,
-                         "%s [%s] [%s:%d]%s\n",
-                         LOG_LEVEL_NOTE[level], datetime, source_filename, line, log_buffer);
+                         "%s [%s] [%s:%s]%s\n",
+                         LOG_LEVEL_NOTE[level], datetime, source_filename, line_str, log_buffer);
     fprintf(stdout, "%s", buffer);
     int log_fd = fileno((FILE *) log_fp);
     if (flock(log_fd, LOCK_EX) == 0) {
