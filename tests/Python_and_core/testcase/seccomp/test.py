@@ -58,9 +58,9 @@ class SeccompTest(base.BaseTestCase):
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
         self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
 
-    def test_write_file(self):
+    def test_write_file_using_open(self):
         config = self.base_config
-        config["exe_path"] = self._compile_c("write_file.c")
+        config["exe_path"] = self._compile_c("write_file_open.c")
         config["output_path"] = config["error_path"] = self.output_path()
         path = os.path.join(self.workspace, "file1.txt")
         config["args"] = [path, "w"]
@@ -81,14 +81,59 @@ class SeccompTest(base.BaseTestCase):
         self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
         self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
 
-    def test_read_write_file(self):
+    def test_read_write_file_using_open(self):
         config = self.base_config
-        config["exe_path"] = self._compile_c("write_file.c")
+        config["exe_path"] = self._compile_c("write_file_open.c")
         config["output_path"] = config["error_path"] = self.output_path()
         path = os.path.join(self.workspace, "file2.txt")
         config["args"] = [path, "w+"]
         result = _judger.run(**config)
-        print(result)
+        # without seccomp
+        self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
+        self.assertEqual("", self.output_content(path))
+
+        # with general seccomp
+        config["seccomp_rule_name"] = "general"
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
+
+        # with c_cpp seccomp
+        config["seccomp_rule_name"] = "c_cpp"
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
+
+    def test_write_file_using_openat(self):
+        config = self.base_config
+        config["exe_path"] = self._compile_c("write_file_openat.c")
+        config["output_path"] = config["error_path"] = self.output_path()
+        path = os.path.join(self.workspace, "file3.txt")
+        config["args"] = [self.workspace, "file3.txt", "w"]
+        result = _judger.run(**config)
+        # without seccomp
+        self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
+        self.assertEqual("", self.output_content(path))
+
+        # with general seccomp
+        config["seccomp_rule_name"] = "general"
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
+
+        # with c_cpp seccomp
+        config["seccomp_rule_name"] = "c_cpp"
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
+
+    def test_read_write_file_using_openat(self):
+        config = self.base_config
+        config["exe_path"] = self._compile_c("write_file_openat.c")
+        config["output_path"] = config["error_path"] = self.output_path()
+        path = os.path.join(self.workspace, "file4.txt")
+        config["args"] = [self.workspace, "file4.txt", "w+"]
+        result = _judger.run(**config)
         # without seccomp
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
         self.assertEqual("", self.output_content(path))
