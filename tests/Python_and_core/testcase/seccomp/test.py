@@ -109,7 +109,7 @@ class SeccompTest(base.BaseTestCase):
         config["exe_path"] = self._compile_c("write_file_openat.c")
         config["output_path"] = config["error_path"] = self.output_path()
         path = os.path.join(self.workspace, "file3.txt")
-        config["args"] = [self.workspace, "file3.txt", "w"]
+        config["args"] = [path, "w"]
         result = _judger.run(**config)
         # without seccomp
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
@@ -132,7 +132,7 @@ class SeccompTest(base.BaseTestCase):
         config["exe_path"] = self._compile_c("write_file_openat.c")
         config["output_path"] = config["error_path"] = self.output_path()
         path = os.path.join(self.workspace, "file4.txt")
-        config["args"] = [self.workspace, "file4.txt", "w+"]
+        config["args"] = [path, "w+"]
         result = _judger.run(**config)
         # without seccomp
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
