@@ -27,13 +27,21 @@ int general_seccomp_rules(struct config *_config) {
     if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_NE, (scmp_datum_t)(_config->exe_path))) != 0) {
         return LOAD_SECCOMP_FAILED;
     }
-    // do not allow "w" and "rw"
+    // do not allow "w" and "rw" using open
     if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(open), 1, SCMP_CMP(1, SCMP_CMP_MASKED_EQ, O_WRONLY, O_WRONLY)) != 0) {
         return LOAD_SECCOMP_FAILED;
     }
     if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(open), 1, SCMP_CMP(1, SCMP_CMP_MASKED_EQ, O_RDWR, O_RDWR)) != 0) {
         return LOAD_SECCOMP_FAILED;
     }
+    // do not allow "w" and "rw" using openat
+    if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(openat), 1, SCMP_CMP(2, SCMP_CMP_MASKED_EQ, O_WRONLY, O_WRONLY)) != 0) {
+        return LOAD_SECCOMP_FAILED;
+    }
+    if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(openat), 1, SCMP_CMP(2, SCMP_CMP_MASKED_EQ, O_RDWR, O_RDWR)) != 0) {
+        return LOAD_SECCOMP_FAILED;
+    }
+
     if (seccomp_load(ctx) != 0) {
         return LOAD_SECCOMP_FAILED;
     }
