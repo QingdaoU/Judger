@@ -9,10 +9,10 @@
         LOG_FATAL(log_fp, "Error: System errno: %s; Internal errno: "#error_code, strerror(errno)); \
         close_file(input_file, output_file, error_file);  \
         raise(SIGUSR1);  \
-        return -1; \
+        exit(EXIT_FAILURE); \
     }
 
 
-int child_process(FILE *log_fp, struct config *_config);
+void child_process(FILE *log_fp, struct config *_config);
 
 #endif //JUDGER_CHILD_H
