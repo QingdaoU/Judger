@@ -97,18 +97,23 @@ void run(struct config *_config, struct result *_result) {
             };
         }
 
-        _result->exit_code = WEXITSTATUS(status);
-        _result->cpu_time = (int) (resource_usage.ru_utime.tv_sec * 1000 +
-                                  resource_usage.ru_utime.tv_usec / 1000);
-        _result->memory = resource_usage.ru_maxrss * 1024;
-
-        if (_result->exit_code != 0) {
-            _result->result = RUNTIME_ERROR;
-        }
-        // if signaled
         if (WIFSIGNALED(status) != 0) {
-            LOG_DEBUG(log_fp, "signal: %d", WTERMSIG(status));
             _result->signal = WTERMSIG(status);
+        }
+
+        if(_result->signal == SIGUSR1) {
+            _result->result = SYSTEM_ERROR;
+        }
+        else {
+            _result->exit_code = WEXITSTATUS(status);
+            _result->cpu_time = (int) (resource_usage.ru_utime.tv_sec * 1000 +
+                                       resource_usage.ru_utime.tv_usec / 1000);
+            _result->memory = resource_usage.ru_maxrss * 1024;
+
+            if (_result->exit_code != 0) {
+                _result->result = RUNTIME_ERROR;
+            }
+
             if (_result->signal == SIGSEGV) {
                 if (_config->max_memory != UNLIMITED && _result->memory > _config->max_memory) {
                     _result->result = MEMORY_LIMIT_EXCEEDED;
@@ -117,23 +122,20 @@ void run(struct config *_config, struct result *_result) {
                     _result->result = RUNTIME_ERROR;
                 }
             }
-            else if(_result->signal == SIGUSR1) {
-                _result->result = SYSTEM_ERROR;
-            }
             else {
-                _result->result = RUNTIME_ERROR;
+                if (_result->signal != 0) {
+                    _result->result = RUNTIME_ERROR;
+                }
+                if (_config->max_memory != UNLIMITED && _result->memory > _config->max_memory) {
+                    _result->result = MEMORY_LIMIT_EXCEEDED;
+                }
+                if (_config->max_real_time != UNLIMITED && _result->real_time > _config->max_real_time) {
+                    _result->result = REAL_TIME_LIMIT_EXCEEDED;
+                }
+                if (_config->max_cpu_time != UNLIMITED && _result->cpu_time > _config->max_cpu_time) {
+                    _result->result = CPU_TIME_LIMIT_EXCEEDED;
+                }
             }
-        }
-        else {
-            if (_config->max_memory != UNLIMITED && _result->memory > _config->max_memory) {
-                _result->result = MEMORY_LIMIT_EXCEEDED;
-            }
-        }
-        if (_config->max_real_time != UNLIMITED && _result->real_time > _config->max_real_time) {
-            _result->result = REAL_TIME_LIMIT_EXCEEDED;
-        }
-        if (_config->max_cpu_time != UNLIMITED && _result->cpu_time > _config->max_cpu_time) {
-            _result->result = CPU_TIME_LIMIT_EXCEEDED;
         }
 
         log_close(log_fp);
