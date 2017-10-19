@@ -36,13 +36,15 @@ void close_file(FILE *fp, ...) {
 }
 
 
-int child_process(FILE *log_fp, struct config *_config) {
+void child_process(FILE *log_fp, struct config *_config) {
     FILE *input_file = NULL, *output_file = NULL, *error_file = NULL;
 
-    struct rlimit max_stack;
-    max_stack.rlim_cur = max_stack.rlim_max = (rlim_t) (_config->max_stack);
-    if (setrlimit(RLIMIT_STACK, &max_stack) != 0) {
-        CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
+    if (_config->max_stack != UNLIMITED) {
+        struct rlimit max_stack;
+        max_stack.rlim_cur = max_stack.rlim_max = (rlim_t) (_config->max_stack);
+        if (setrlimit(RLIMIT_STACK, &max_stack) != 0) {
+            CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
+        }
     }
 
     // set memory limit
@@ -157,5 +159,4 @@ int child_process(FILE *log_fp, struct config *_config) {
 
     execve(_config->exe_path, _config->args, _config->env);
     CHILD_ERROR_EXIT(EXECVE_FAILED);
-    return 0;
 }
