@@ -3,12 +3,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include "../runner.h"
 
 
 int general_seccomp_rules(struct config *_config) {
-    int syscalls_blacklist[] = {SCMP_SYS(socket), SCMP_SYS(clone),
+    int syscalls_blacklist[] = {SCMP_SYS(clone),
                                 SCMP_SYS(fork), SCMP_SYS(vfork),
                                 SCMP_SYS(kill)};
     int syscalls_blacklist_length = sizeof(syscalls_blacklist) / sizeof(int);
@@ -22,6 +23,10 @@ int general_seccomp_rules(struct config *_config) {
         if (seccomp_rule_add(ctx, SCMP_ACT_KILL, syscalls_blacklist[i], 0) != 0) {
             return LOAD_SECCOMP_FAILED;
         }
+    }
+    // use SCMP_ACT_KILL for socket, python will be killed immediately
+    if (seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EACCES), SCMP_SYS(socket), 0) != 0) {
+        return LOAD_SECCOMP_FAILED;
     }
     // add extra rule for execve
     if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_NE, (scmp_datum_t)(_config->exe_path))) != 0) {
