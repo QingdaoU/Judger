@@ -99,14 +99,7 @@ static PyObject *judger_run(PyObject *self, PyObject *args, PyObject *kwargs) {
         }
     }
 
-    void *handler = dlopen("/usr/lib/judger/libjudger.so", RTLD_LAZY);
-    void (*judger_run)(struct config *, struct result *);
-
-    if (!handler) {
-        RaiseValueError("dlopen error")
-    }
-    judger_run = dlsym(handler, "run");
-    judger_run(&_config, &_result);
+    run(&_config, &_result);
 
     return Py_BuildValue("{s:i, s:l, s:i, s:i, s:i, s:i, s:i}",
                          "cpu_time", _result.cpu_time,
