@@ -50,7 +50,7 @@ void log_write(int level, const char *source_filename, const int line, const FIL
     int count = snprintf(buffer, log_buffer_size,
                          "%s [%s] [%s:%s]%s\n",
                          LOG_LEVEL_NOTE[level], datetime, source_filename, line_str, log_buffer);
-    fprintf(stdout, "%s", buffer);
+    // fprintf(stderr, "%s", buffer);
     int log_fd = fileno((FILE *) log_fp);
     if (flock(log_fd, LOCK_EX) == 0) {
         if (write(log_fd, buffer, (size_t) count) < 0) {

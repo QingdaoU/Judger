@@ -2,16 +2,16 @@ cmake_minimum_required(VERSION 2.5)
 project(judger C)
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/output)
 
-set(BASE_CMAKE_C_FLAGS "-Wall -Werror -O3 -std=c99")
-set(CMAKE_C_FLAGS "${BASE_CMAKE_C_FLAGS}")
-
+set(CMAKE_C_FLAGS "-g -Wall -Werror -O3 -std=c99 -pie -fPIC")
 
 # make judger lib
 file(GLOB SOURCE "src/*.c" "src/rules/*.c")
-add_library(judger SHARED ${SOURCE})
-target_link_libraries(judger pthread seccomp)
+add_executable(libjudger.so ${SOURCE})
+target_link_libraries(libjudger.so pthread seccomp)
 
 
-install(DIRECTORY output/ DESTINATION /usr/lib/judger)
+install(FILES output/libjudger.so
+    PERMISSIONS OWNER_EXECUTE OWNER_READ
+    DESTINATION /usr/lib/judger)
