@@ -157,3 +157,18 @@ class SeccompTest(base.BaseTestCase):
 
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
 
+    def test_exceveat(self):
+        config = self.base_config
+        config["exe_path"] = self._compile_c("execveat.c")
+        config["output_path"] = config["error_path"] = self.output_path()
+        result = _judger.run(**config)
+        if "syscall not found" in self.output_content(config["output_path"]):
+            print("execveat syscall not found, test ignored")
+            return
+        self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
+        
+        # with general seccomp 
+        config["seccomp_rule_name"] = "general"
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        self.assertEqual(result["signal"], self.BAD_SYSTEM_CALL)
