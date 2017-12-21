@@ -1,9 +1,10 @@
 # coding=utf-8
 from __future__ import print_function
 import sys
-import _judger
 import signal
 import os
+import resource
+import _judger
 
 from .. import base
 
@@ -18,11 +19,6 @@ class IntegrationTest(base.BaseTestCase):
 
     def _compile_cpp(self, src_name):
         return super(IntegrationTest, self)._compile_cpp("../../test_src/integration/" + src_name)
-
-    def test_args_validation(self):
-        with self.assertRaisesRegexp(ValueError, "Invalid args and kwargs"):
-            _judger.run()
-            _judger.run(a=1, c=3)
 
     def test_args_must_be_list(self):
         with self.assertRaisesRegexp(ValueError, "args must be a list"):
@@ -42,7 +38,7 @@ class IntegrationTest(base.BaseTestCase):
                         seccomp_rule_name="1.so", uid=0, gid=0)
 
     def test_args_item_must_be_string(self):
-        with self.assertRaisesRegexp(ValueError, "arg item must be a string"):
+        with self.assertRaisesRegexp(ValueError, "args item must be a string"):
             _judger.run(max_cpu_time=1000, max_real_time=2000,
                         max_memory=1024 * 1024 * 128, max_stack=32 * 1024 * 1024,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
@@ -50,7 +46,7 @@ class IntegrationTest(base.BaseTestCase):
                         args=["1234", 1234], env=["a=b"], log_path="1.log",
                         seccomp_rule_name="1.so", uid=0, gid=0)
 
-        with self.assertRaisesRegexp(ValueError, "arg item must be a string"):
+        with self.assertRaisesRegexp(ValueError, "args item must be a string"):
             _judger.run(max_cpu_time=1000, max_real_time=2000,
                         max_memory=1024 * 1024 * 128, max_stack=32 * 1024 * 1024,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
@@ -62,7 +58,7 @@ class IntegrationTest(base.BaseTestCase):
             args = ["哈哈哈".encode("utf-8")]
         else:
             args = [u"哈哈哈"]
-        with self.assertRaisesRegexp(ValueError, "arg item must be a string"):
+        with self.assertRaisesRegexp(ValueError, "args item must be a string"):
             _judger.run(max_cpu_time=1000, max_real_time=2000,
                         max_memory=1024 * 1024 * 128, max_stack=32 * 1024 * 1024,
                         max_process_number=200, max_output_size=10000, exe_path="1.out",
@@ -211,6 +207,17 @@ class IntegrationTest(base.BaseTestCase):
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
         self.assertTrue(result["memory"] >= 102400000 * 4)
 
+    def test_memory4(self):
+        """parent process memory should not affect child process"""
+        a = ["test" for i in range(2000000)]
+        # get self maxrss
+        max_rss = resource.getrusage(resource.RUSAGE_SELF)[2]
+        self.assertTrue(max_rss > 28000)
+        result = _judger.run(**self.base_config)
+        self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
+        self.assertTrue(result["memory"] < 3000000)
+        del a
+
     def test_re1(self):
         config = self.base_config
         config["exe_path"] = self._compile_c("re1.c")
@@ -283,7 +290,9 @@ class IntegrationTest(base.BaseTestCase):
         config["exe_path"] = self._compile_c("output_size.c")
         config["max_output_size"] = 1000 * 10
         result = _judger.run(**config)
-        self.assertEqual(result["exit_code"], 2)
+        self.assertEqual(result["result"], _judger.RESULT_RUNTIME_ERROR)
+        with open("/tmp/fsize_test", "r") as f:
+            self.assertEqual(len(f.read()), 10000)
 
     def test_stack_size(self):
         config = self.base_config
