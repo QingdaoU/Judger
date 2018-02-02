@@ -2,4 +2,4 @@
 
 Judger for OnlineJudge 
 
-[Document](http://docs.onlinejudge.me/Judger/)
+[Document](http://docs.onlinejudge.me/#/judger/)
