@@ -218,6 +218,16 @@ class IntegrationTest(base.BaseTestCase):
         self.assertTrue(result["memory"] < 3000000)
         del a
 
+    def test_memory_limit_check_only(self):
+        config = self.base_config
+        config["memory_limit_check_only"] = 1
+        config["max_memory"] = 64 * 1024 * 1024
+        config["exe_path"] = self._compile_c("memory2.c")
+        result = _judger.run(**config)
+        self.assertEqual(result["exit_code"], 0)
+        self.assertTrue(result["memory"] > 256 * 1024 * 1024)
+        self.assertEqual(result["result"], _judger.RESULT_MEMORY_LIMIT_EXCEEDED)
+
     def test_re1(self):
         config = self.base_config
         config["exe_path"] = self._compile_c("re1.c")

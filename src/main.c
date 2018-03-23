@@ -5,7 +5,7 @@
 #define STR_PLACE_HOLDER "<str>"
 
 struct arg_lit *verb, *help, *version;
-struct arg_int *max_cpu_time, *max_real_time, *max_memory, *max_stack,
+struct arg_int *max_cpu_time, *max_real_time, *max_memory, *max_stack, *memory_limit_check_only,
         *max_process_number, *max_output_size, *uid, *gid;
 struct arg_str *exe_path, *input_path, *output_path, *error_path, *args, *env, *log_path, *seccomp_rule_name;
 struct arg_end *end;
@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
             max_cpu_time = arg_intn(NULL, "max_cpu_time", INT_PLACE_HOLDER, 0, 1, "Max CPU Time (ms)"),
             max_real_time = arg_intn(NULL, "max_real_time", INT_PLACE_HOLDER, 0, 1, "Max Real Time (ms)"),
             max_memory = arg_intn(NULL, "max_memory", INT_PLACE_HOLDER, 0, 1, "Max Memory (byte)"),
+            memory_limit_check_only = arg_intn(NULL, "memory_limit_check_only", INT_PLACE_HOLDER, 0, 1, "only check memory usage, do not setrlimit (default False)"),
             max_stack = arg_intn(NULL, "max_stack", INT_PLACE_HOLDER, 0, 1, "Max Stack (byte, default 16M)"),
             max_process_number = arg_intn(NULL, "max_process_number", INT_PLACE_HOLDER, 0, 1, "Max Process Number"),
             max_output_size = arg_intn(NULL, "max_output_size", INT_PLACE_HOLDER, 0, 1, "Max Output Size (byte)"),
@@ -81,6 +82,12 @@ int main(int argc, char *argv[]) {
         _config.max_memory = (long) *max_memory->ival;
     } else {
         _config.max_memory = UNLIMITED;
+    }
+
+    if (memory_limit_check_only->count > 0) {
+        _config.memory_limit_check_only = *memory_limit_check_only->ival == 0 ? 0 : 1;
+    } else {
+        _config.memory_limit_check_only = 0;
     }
 
     if (max_stack->count > 0) {

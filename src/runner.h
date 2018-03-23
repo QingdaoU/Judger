@@ -46,6 +46,7 @@ struct config {
     long max_stack;
     int max_process_number;
     long max_output_size;
+    int memory_limit_check_only;
     char *exe_path;
     char *input_path;
     char *output_path;

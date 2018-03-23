@@ -48,11 +48,14 @@ void child_process(FILE *log_fp, struct config *_config) {
     }
 
     // set memory limit
-    if (_config->max_memory != UNLIMITED) {
-        struct rlimit max_memory;
-        max_memory.rlim_cur = max_memory.rlim_max = (rlim_t) (_config->max_memory) * 2;
-        if (setrlimit(RLIMIT_AS, &max_memory) != 0) {
-            CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
+    // if memory_limit_check_only == 0, we only check memory usage number, because setrlimit(maxrss) will cause some crash issues
+    if (_config->memory_limit_check_only == 0) {
+        if (_config->max_memory != UNLIMITED) {
+            struct rlimit max_memory;
+            max_memory.rlim_cur = max_memory.rlim_max = (rlim_t) (_config->max_memory) * 2;
+            if (setrlimit(RLIMIT_AS, &max_memory) != 0) {
+                CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
+            }
         }
     }
 
