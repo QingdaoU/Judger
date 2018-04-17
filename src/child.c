@@ -24,15 +24,10 @@
 #include "killer.h"
 
 
-void close_file(FILE *fp, ...) {
-    va_list args;
-    va_start(args, fp);
-
+void close_file(FILE *fp) {
     if (fp != NULL) {
         fclose(fp);
     }
-
-    va_end(args);
 }
 
 

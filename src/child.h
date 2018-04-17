@@ -7,7 +7,9 @@
 #define CHILD_ERROR_EXIT(error_code)\
     {\
         LOG_FATAL(log_fp, "Error: System errno: %s; Internal errno: "#error_code, strerror(errno)); \
-        close_file(input_file, output_file, error_file);  \
+        close_file(input_file); \
+        close_file(output_file); \
+        close_file(error_file);  \
         raise(SIGUSR1);  \
         exit(EXIT_FAILURE); \
     }
