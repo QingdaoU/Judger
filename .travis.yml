@@ -1,17 +1,11 @@
-language: python
-dist: trusty
-python:
-    - "2.7"
-    - "3.5"
 sudo: required
-before_install:
-    - sudo apt-get -qq update
-    - sudo apt-get install libseccomp-dev cmake
-install:
-    - mkdir build && cd build
-    - cmake .. && make && sudo make install
-    - cd ../bindings/Python && sudo `which python` setup.py install
+
+services:
+  - docker
+
 script:
-    - cd ../../tests/Python_and_core && sudo `which python` test.py
-notifications:
-    slack: onlinejudgeteam:BzBz8UFgmS5crpiblof17K2W
+  - docker build -t judger-test -f tests/Dockerfile-16.04 .
+  - docker run -it --rm -v $PWD:/src judger-test /bin/bash -c "chmod +x tests/runtest.sh && ./tests/runtest.sh"
+
+  - docker build -t judger-test -f tests/Dockerfile-18.04 .
+  - docker run -it --rm -v $PWD:/src judger-test /bin/bash -c "chmod +x tests/runtest.sh && ./tests/runtest.sh"

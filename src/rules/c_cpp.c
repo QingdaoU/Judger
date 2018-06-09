@@ -37,6 +37,9 @@ int c_cpp_seccomp_rules(struct config *_config) {
     if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(open), 1, SCMP_CMP(1, SCMP_CMP_MASKED_EQ, O_WRONLY | O_RDWR, 0)) != 0) {
         return LOAD_SECCOMP_FAILED;
     }
+    if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(openat), 1, SCMP_CMP(2, SCMP_CMP_MASKED_EQ, O_WRONLY | O_RDWR, 0)) != 0) {
+        return LOAD_SECCOMP_FAILED;
+    }
     if (seccomp_load(ctx) != 0) {
         return LOAD_SECCOMP_FAILED;
     }
