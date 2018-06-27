@@ -35,7 +35,8 @@ enum {
     DUP2_FAILED = -8,
     SETUID_FAILED = -9,
     EXECVE_FAILED = -10,
-    SPJ_ERROR = -11
+    SPJ_ERROR = -11,
+    SOCK_CONNECT_FAILED = -12
 };
 
 

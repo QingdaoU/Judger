@@ -1,6 +1,7 @@
 #define _DEFAULT_SOURCE
 #define _POSIX_SOURCE
 #define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <signal.h>
@@ -15,6 +16,10 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/mount.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/un.h>
 
 #include "runner.h"
 #include "child.h"
@@ -24,15 +29,40 @@
 #include "killer.h"
 
 
-void close_file(FILE *fp) {
-    if (fp != NULL) {
-        fclose(fp);
+int is_domain_socket(char *path) {
+    // if path is unix:xxx return 0
+    return strncmp("unix:", path, 5);
+}
+
+
+int get_io_fd(FILE *log_fp, char *path, char *flag) {
+    // if path begins with unix:
+    if (is_domain_socket(path) == 0) {
+        struct sockaddr_un addr;
+        int fd = socket(AF_UNIX, SOCK_STREAM, 0);
+        if (fd == -1) {
+            CHILD_ERROR_EXIT(SOCK_CONNECT_FAILED);
+        }
+        memset(&addr, 0, sizeof(struct sockaddr_un));
+        addr.sun_family = AF_UNIX;
+        path = path + 5;
+        strcpy(addr.sun_path, path);
+        if (connect(fd, (const struct sockaddr *) &addr, sizeof(struct sockaddr_un)) == -1) {
+            CHILD_ERROR_EXIT(SOCKET_CONNECT_FAILED);
+        }
+        return fd;
+    } else {
+        FILE *f = fopen(path, flag);
+        if (f == NULL) {
+            CHILD_ERROR_EXIT(DUP2_FAILED);
+        }
+        return fileno(f);
     }
 }
 
 
 void child_process(FILE *log_fp, struct config *_config) {
-    FILE *input_file = NULL, *output_file = NULL, *error_file = NULL;
+    int input_fd = 0, output_fd = 0, error_fd = 0;
 
     if (_config->max_stack != UNLIMITED) {
         struct rlimit max_stack;
@@ -75,52 +105,48 @@ void child_process(FILE *log_fp, struct config *_config) {
     // set max output size limit
     if (_config->max_output_size != UNLIMITED) {
         struct rlimit max_output_size;
-        max_output_size.rlim_cur = max_output_size.rlim_max = (rlim_t ) _config->max_output_size;
+        max_output_size.rlim_cur = max_output_size.rlim_max = (rlim_t) _config->max_output_size;
         if (setrlimit(RLIMIT_FSIZE, &max_output_size) != 0) {
             CHILD_ERROR_EXIT(SETRLIMIT_FAILED);
         }
     }
 
     if (_config->input_path != NULL) {
-        input_file = fopen(_config->input_path, "r");
-        if (input_file == NULL) {
-            CHILD_ERROR_EXIT(DUP2_FAILED);
-        }
-        // redirect file -> stdin
-        // On success, these system calls return the new descriptor.
+        input_fd = get_io_fd(log_fp, _config->input_path, "r");
+        // On success, dup2 system calls return the new descriptor.
         // On error, -1 is returned, and errno is set appropriately.
-        if (dup2(fileno(input_file), fileno(stdin)) == -1) {
-            // todo log
+        if (dup2(input_fd, fileno(stdin)) == -1) {
             CHILD_ERROR_EXIT(DUP2_FAILED);
         }
     }
 
     if (_config->output_path != NULL) {
-        output_file = fopen(_config->output_path, "w");
-        if (output_file == NULL) {
-            CHILD_ERROR_EXIT(DUP2_FAILED);
+        if (is_domain_socket(_config->output_path) == 0 && strcmp(_config->input_path, _config->output_path) == 0) {
+            output_fd = input_fd;
+        } else {
+            output_fd = get_io_fd(log_fp, _config->output_path, "w");
         }
-        // redirect stdout -> file
-        if (dup2(fileno(output_file), fileno(stdout)) == -1) {
+        if (dup2(output_fd, fileno(stdout)) == -1) {
             CHILD_ERROR_EXIT(DUP2_FAILED);
         }
     }
 
     if (_config->error_path != NULL) {
-        // if outfile and error_file is the same path, we use the same file pointer
-        if (_config->output_path != NULL && strcmp(_config->output_path, _config->error_path) == 0) {
-            error_file = output_file;
+        if (strcmp(_config->error_path, _config->output_path) == 0) {
+            error_fd = output_fd;
         }
-        else {
-            error_file = fopen(_config->error_path, "w");
-            if (error_file == NULL) {
-                // todo log
-                CHILD_ERROR_EXIT(DUP2_FAILED);
+        if (is_domain_socket(_config->output_path) == 0) {
+            if (strcmp(_config->output_path, _config->input_path) == 0) {
+                error_fd = input_fd;
+            } else {
+                error_fd = get_io_fd(log_fp, _config->error_path, "no-use");
             }
+        } else {
+            error_fd = get_io_fd(log_fp, _config->error_path, "w");
         }
-        // redirect stderr -> file
-        if (dup2(fileno(error_file), fileno(stderr)) == -1) {
-            // todo log
+
+
+        if (dup2(error_fd, fileno(stdout)) == -1) {
             CHILD_ERROR_EXIT(DUP2_FAILED);
         }
     }
@@ -142,9 +168,8 @@ void child_process(FILE *log_fp, struct config *_config) {
             if (c_cpp_seccomp_rules(_config) != SUCCESS) {
                 CHILD_ERROR_EXIT(LOAD_SECCOMP_FAILED);
             }
-        }
-        else if (strcmp("general", _config->seccomp_rule_name) == 0) {
-            if (general_seccomp_rules(_config) != SUCCESS ) {
+        } else if (strcmp("general", _config->seccomp_rule_name) == 0) {
+            if (general_seccomp_rules(_config) != SUCCESS) {
                 CHILD_ERROR_EXIT(LOAD_SECCOMP_FAILED);
             }
         }
