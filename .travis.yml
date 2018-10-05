@@ -9,4 +9,3 @@ script:
 
   - docker build -t judger-test -f tests/Dockerfile-18.04 .
   - docker run -it --rm -v $PWD:/src judger-test /bin/bash -c "chmod +x tests/runtest.sh && ./tests/runtest.sh"
-
