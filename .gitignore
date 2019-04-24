@@ -7,3 +7,4 @@ build/
 __pycache__
 *.pyc
 cmake-build-debug/
+.ycm_extra_conf.py

@@ -1,0 +1,11 @@
+{
+    "name": "judger",
+    "version": "1.0.0",
+    "description": "judger for online system",
+    "main": "./build/Release/judger.node",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "virusdefender,rainboy",
+    "license": "GPL"
+}
