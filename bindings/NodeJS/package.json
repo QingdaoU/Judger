@@ -5,7 +5,7 @@
   "main": "./build/Release/judger.node",
   "scripts": {
     "build": "node-gyp rebuild",
-    "test": "mocha -t 5000 ../../tests/Nodejs_and_core"
+    "test": "sudo ./node_modules/.bin/mocha -t 5000 ../../tests/Nodejs_and_core"
   },
   "author": "virusdefender,rainboy",
   "license": "GPL",
