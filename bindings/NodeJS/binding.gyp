@@ -2,7 +2,8 @@
     "targets": [
     {
         "target_name": "judger",
-        "sources": [ "judger.cc"]
+        'cflags_cc!': [ '-std=c++11','-O2' ],
+        "sources": [ "judger.cc"],
     }
     ]
 }
