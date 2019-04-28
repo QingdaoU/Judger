@@ -1,0 +1,16 @@
+{
+  "name": "judger",
+  "version": "1.0.0",
+  "description": "judger for online system",
+  "main": "./build/Release/judger.node",
+  "scripts": {
+    "build": "node-gyp rebuild",
+    "test": "sudo ./node_modules/.bin/mocha -t 5000 ../../tests/Nodejs_and_core"
+  },
+  "author": "virusdefender,rainboy",
+  "license": "GPL",
+  "devDependencies": {
+    "mocha": "^6.1.4",
+    "node-gyp": "^4.0.0"
+  }
+}
