@@ -327,3 +327,11 @@ class IntegrationTest(base.BaseTestCase):
 
         result = _judger.run(**config)
         self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
+
+    def test_get_time(self):
+        config = self.base_config
+        config["exe_path"] = self._compile_c("time.c")
+        config["seccomp_rule_name"] = "c_cpp"
+
+        result = _judger.run(**config)
+        self.assertEqual(result["result"], _judger.RESULT_SUCCESS)
