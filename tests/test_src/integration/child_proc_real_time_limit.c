@@ -16,7 +16,7 @@ int main()
     }
 
     if (pid == 0) {
-        sleep(10000);
+        sleep(10);
     }
     else {
         struct rusage resource_usage;
