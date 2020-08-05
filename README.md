@@ -13,5 +13,5 @@ Judger for OnlineJudge
 Example CLI
 
 ```bash
-./libjudger.so --exe_path=/data/data/com.termux/files/usr/bin/python --input_path=/proc/self/fd/0 --uid=0 --gid=0 --output_path=/proc/self/fd/1 --seccomp_rule_name="general"
+./libjudger.so --exe_path=/data/data/com.termux/files/usr/bin/python --input_path=/proc/self/fd/0 --uid=0 --gid=0 --output_path=/proc/self/fd/1 --error_path=/proc/self/fd/2 --seccomp_rule_name="general"
 ```
