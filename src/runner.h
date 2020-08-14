@@ -35,7 +35,6 @@ enum {
     DUP2_FAILED = -8,
     SETUID_FAILED = -9,
     EXECVE_FAILED = -10,
-    SPJ_ERROR = -11
 };
 
 
@@ -61,7 +60,6 @@ struct config {
 
 
 enum {
-    WRONG_ANSWER = -1,
     CPU_TIME_LIMIT_EXCEEDED = 1,
     REAL_TIME_LIMIT_EXCEEDED = 2,
     MEMORY_LIMIT_EXCEEDED = 3,
