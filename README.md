@@ -4,7 +4,7 @@
 
 Judger for OnlineJudge 
 
-[Document](https://docs.onlinejudge.me/#/judger/api)
+[Document](https://opensource.qduoj.com#/judger/api)
 
 [JudgeServer](https://github.com/QingdaoU/JudgeServer)
 
