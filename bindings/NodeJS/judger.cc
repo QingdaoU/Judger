@@ -226,7 +226,7 @@ namespace demo {
         exports->Set(String::NewFromUtf8(isolate,"ERROR_DUP2_FAILED"),Integer::New(isolate, -8));
         exports->Set(String::NewFromUtf8(isolate,"ERROR_SETUID_FAILED"),Integer::New(isolate, -9));
         exports->Set(String::NewFromUtf8(isolate,"ERROR_EXECVE_FAILED"),Integer::New(isolate, -10));
-        exports->Set(String::NewFromUtf8(isolate,"ERROR_SPJ_ERROR"),Integer::New(isolate, -11));
+        exports->Set(String::NewFromUtf8(isolate,"ERROR_CHECKER_ERROR"),Integer::New(isolate, -11));
     }
 
     NODE_MODULE(addon, init)
