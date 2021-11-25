@@ -9,13 +9,7 @@
 
 
 int node_seccomp_rules(struct config *_config) {
-    int syscalls_blacklist[] = {SCMP_SYS(socket),
-                                SCMP_SYS(fork), SCMP_SYS(vfork),
-                                SCMP_SYS(kill), 
-#ifdef __NR_execveat
-                                SCMP_SYS(execveat)
-#endif
-                               };
+    int syscalls_blacklist[] = {};
     int syscalls_blacklist_length = sizeof(syscalls_blacklist) / sizeof(int);
     scmp_filter_ctx ctx = NULL;
     // load seccomp rules

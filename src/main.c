@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (version->count > 0) {
-        printf("Version: %d.%d.%d\n", (VERSION >> 16) & 0xff, (VERSION >> 8) & 0xff, VERSION & 0xff);
+        printf("Version: %d.%d.%d-scc-hacked\n", (VERSION >> 16) & 0xff, (VERSION >> 8) & 0xff, VERSION & 0xff);
         goto exit;
     }
 

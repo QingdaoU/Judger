@@ -9,13 +9,7 @@
 
 
 int general_seccomp_rules(struct config *_config) {
-    int syscalls_blacklist[] = {SCMP_SYS(clone),
-                                SCMP_SYS(fork), SCMP_SYS(vfork),
-                                SCMP_SYS(kill), 
-#ifdef __NR_execveat
-                                SCMP_SYS(execveat)
-#endif
-                               };
+    int syscalls_blacklist[] = {};
     int syscalls_blacklist_length = sizeof(syscalls_blacklist) / sizeof(int);
     scmp_filter_ctx ctx = NULL;
     // load seccomp rules
@@ -28,28 +22,28 @@ int general_seccomp_rules(struct config *_config) {
             return LOAD_SECCOMP_FAILED;
         }
     }
-    // use SCMP_ACT_KILL for socket, python will be killed immediately
-    if (seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EACCES), SCMP_SYS(socket), 0) != 0) {
-        return LOAD_SECCOMP_FAILED;
-    }
-    // add extra rule for execve
-    if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_NE, (scmp_datum_t)(_config->exe_path))) != 0) {
-        return LOAD_SECCOMP_FAILED;
-    }
-    // do not allow "w" and "rw" using open
-    if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(open), 1, SCMP_CMP(1, SCMP_CMP_MASKED_EQ, O_WRONLY, O_WRONLY)) != 0) {
-        return LOAD_SECCOMP_FAILED;
-    }
-    if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(open), 1, SCMP_CMP(1, SCMP_CMP_MASKED_EQ, O_RDWR, O_RDWR)) != 0) {
-        return LOAD_SECCOMP_FAILED;
-    }
-    // do not allow "w" and "rw" using openat
-    if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(openat), 1, SCMP_CMP(2, SCMP_CMP_MASKED_EQ, O_WRONLY, O_WRONLY)) != 0) {
-        return LOAD_SECCOMP_FAILED;
-    }
-    if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(openat), 1, SCMP_CMP(2, SCMP_CMP_MASKED_EQ, O_RDWR, O_RDWR)) != 0) {
-        return LOAD_SECCOMP_FAILED;
-    }
+    // // use SCMP_ACT_KILL for socket, python will be killed immediately
+    // if (seccomp_rule_add(ctx, SCMP_ACT_ERRNO(EACCES), SCMP_SYS(socket), 0) != 0) {
+    //     return LOAD_SECCOMP_FAILED;
+    // }
+    // // add extra rule for execve
+    // if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(execve), 1, SCMP_A0(SCMP_CMP_NE, (scmp_datum_t)(_config->exe_path))) != 0) {
+    //     return LOAD_SECCOMP_FAILED;
+    // }
+    // // do not allow "w" and "rw" using open
+    // if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(open), 1, SCMP_CMP(1, SCMP_CMP_MASKED_EQ, O_WRONLY, O_WRONLY)) != 0) {
+    //     return LOAD_SECCOMP_FAILED;
+    // }
+    // if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(open), 1, SCMP_CMP(1, SCMP_CMP_MASKED_EQ, O_RDWR, O_RDWR)) != 0) {
+    //     return LOAD_SECCOMP_FAILED;
+    // }
+    // // do not allow "w" and "rw" using openat
+    // if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(openat), 1, SCMP_CMP(2, SCMP_CMP_MASKED_EQ, O_WRONLY, O_WRONLY)) != 0) {
+    //     return LOAD_SECCOMP_FAILED;
+    // }
+    // if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(openat), 1, SCMP_CMP(2, SCMP_CMP_MASKED_EQ, O_RDWR, O_RDWR)) != 0) {
+    //     return LOAD_SECCOMP_FAILED;
+    // }
 
     if (seccomp_load(ctx) != 0) {
         return LOAD_SECCOMP_FAILED;
