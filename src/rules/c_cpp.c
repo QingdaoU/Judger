@@ -47,6 +47,9 @@ int _c_cpp_seccomp_rules(struct config *_config, bool allow_write_file) {
         if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(open), 0) != 0) {
             return LOAD_SECCOMP_FAILED;
         }
+        if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(openat), 0) != 0) {
+            return LOAD_SECCOMP_FAILED;
+        }
         if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(dup), 0) != 0) {
             return LOAD_SECCOMP_FAILED;
         }
